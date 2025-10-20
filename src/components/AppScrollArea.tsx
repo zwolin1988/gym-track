@@ -5,9 +5,5 @@ interface AppScrollAreaProps {
 }
 
 export default function AppScrollArea({ children }: AppScrollAreaProps) {
-  return (
-    <ScrollArea className="h-screen w-full">
-      {children}
-    </ScrollArea>
-  );
+  return <ScrollArea className="h-screen w-full">{children}</ScrollArea>;
 }

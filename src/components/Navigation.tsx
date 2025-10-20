@@ -22,9 +22,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps) {
       <div className="container mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
         {/* Logo */}
         <a href="/" className="flex items-center gap-3 text-foreground hover:opacity-80 transition-opacity">
-          <span className="material-symbols-outlined text-primary text-3xl">
-            fitness_center
-          </span>
+          <span className="material-symbols-outlined text-primary text-3xl">fitness_center</span>
           <h2 className="text-xl font-bold tracking-tight">Gym Track</h2>
         </a>
 
@@ -35,9 +33,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps) {
               key={item.href}
               href={item.href}
               className={`text-sm font-medium transition-colors ${
-                isActive(item.href)
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-primary"
+                isActive(item.href) ? "text-primary" : "text-muted-foreground hover:text-primary"
               }`}
             >
               {item.label}
@@ -62,9 +58,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps) {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
-            <span className="material-symbols-outlined">
-              {mobileMenuOpen ? "close" : "menu"}
-            </span>
+            <span className="material-symbols-outlined">{mobileMenuOpen ? "close" : "menu"}</span>
           </Button>
         </div>
       </div>
@@ -78,9 +72,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps) {
                 key={item.href}
                 href={item.href}
                 className={`text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-primary"
+                  isActive(item.href) ? "text-primary" : "text-muted-foreground hover:text-primary"
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >

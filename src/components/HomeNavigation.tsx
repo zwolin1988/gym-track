@@ -28,13 +28,8 @@ export default function HomeNavigation() {
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-sm">
       <div className="container mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
         {/* Logo */}
-        <a
-          href="/"
-          className="flex items-center gap-3 text-foreground hover:opacity-80 transition-opacity"
-        >
-          <span className="material-symbols-outlined text-primary text-3xl">
-            fitness_center
-          </span>
+        <a href="/" className="flex items-center gap-3 text-foreground hover:opacity-80 transition-opacity">
+          <span className="material-symbols-outlined text-primary text-3xl">fitness_center</span>
           <h2 className="text-xl font-bold tracking-tight">Gym Track</h2>
         </a>
 
@@ -69,9 +64,7 @@ export default function HomeNavigation() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
-            <span className="material-symbols-outlined">
-              {mobileMenuOpen ? "close" : "menu"}
-            </span>
+            <span className="material-symbols-outlined">{mobileMenuOpen ? "close" : "menu"}</span>
           </Button>
         </div>
       </div>
