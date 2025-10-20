@@ -1,8 +1,153 @@
 ---
-import Welcome from "../components/Welcome.astro";
 import Layout from "../layouts/Layout.astro";
+import HomeNavigation from "../components/HomeNavigation";
+import AstroButton from "../components/AstroButton";
 ---
 
-<Layout>
-  <Welcome />
+<Layout title="Gym Track - Śledź swoje postępy treningowe" showNavigation={false}>
+  <HomeNavigation client:load />
+
+  <!-- Hero Section -->
+  <section class="relative flex min-h-[60vh] items-center justify-center py-20 md:py-32">
+    <div
+      class="absolute inset-0 bg-cover bg-center"
+      style="background-image: linear-gradient(rgba(16, 25, 34, 0.7), rgba(16, 25, 34, 1)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070');"
+    >
+    </div>
+    <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tighter">
+        Śledź swoje postępy treningowe z Gym Track
+      </h1>
+      <p class="mt-6 max-w-2xl mx-auto text-lg text-gray-300">
+        Twórz plany, monitoruj ćwiczenia i analizuj wyniki. Gym Track to Twój partner w drodze do lepszej formy.
+      </p>
+      <AstroButton client:load className="mt-8"> Rozpocznij Trening </AstroButton>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="py-16 sm:py-24" id="features">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto">
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">Kluczowe funkcjonalności</h2>
+        <p class="mt-4 text-lg text-muted-foreground">
+          Gym Track oferuje szereg funkcji, które pomogą Ci w osiągnięciu Twoich celów treningowych.
+        </p>
+      </div>
+      <div class="mt-12 grid gap-8 md:grid-cols-3">
+        <!-- Feature 1 -->
+        <div
+          class="flex flex-col gap-4 rounded-lg border border-border/50 bg-card/50 p-6 hover:border-primary/50 transition-colors"
+        >
+          <span class="material-symbols-outlined text-primary text-4xl">assignment</span>
+          <h3 class="text-xl font-bold text-foreground">Tworzenie planów treningowych</h3>
+          <p class="text-muted-foreground">
+            Stwórz spersonalizowane plany, dostosowane do Twoich potrzeb. Dodawaj ćwiczenia, określaj serie, powtórzenia
+            i ciężar.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div
+          class="flex flex-col gap-4 rounded-lg border border-border/50 bg-card/50 p-6 hover:border-primary/50 transition-colors"
+        >
+          <span class="material-symbols-outlined text-primary text-4xl">trending_up</span>
+          <h3 class="text-xl font-bold text-foreground">Śledzenie postępów</h3>
+          <p class="text-muted-foreground">
+            Rejestruj swoje treningi, śledź postępy w czasie rzeczywistym i monitoruj swoje osiągnięcia.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div
+          class="flex flex-col gap-4 rounded-lg border border-border/50 bg-card/50 p-6 hover:border-primary/50 transition-colors"
+        >
+          <span class="material-symbols-outlined text-primary text-4xl">analytics</span>
+          <h3 class="text-xl font-bold text-foreground">Analiza wyników</h3>
+          <p class="text-muted-foreground">
+            Analizuj swoje wyniki, identyfikuj obszary do poprawy i optymalizuj swoje plany treningowe.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="py-16 sm:py-24 bg-card/30" id="benefits">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto">
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">Korzyści dla użytkownika</h2>
+        <p class="mt-4 text-lg text-muted-foreground">
+          Gym Track to nie tylko narzędzie, to Twój osobisty trener, który pomoże Ci osiągnąć sukces.
+        </p>
+      </div>
+      <div class="mt-12 grid gap-8 md:grid-cols-3">
+        <!-- Benefit 1 -->
+        <div class="flex flex-col gap-4">
+          <div
+            class="w-full aspect-video bg-cover bg-center rounded-lg"
+            style="background-image: url('https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2070');"
+          >
+          </div>
+          <h3 class="text-xl font-bold text-foreground">Motywacja i zaangażowanie</h3>
+          <p class="text-muted-foreground">Śledzenie postępów i analiza wyników motywują do dalszego działania.</p>
+        </div>
+
+        <!-- Benefit 2 -->
+        <div class="flex flex-col gap-4">
+          <div
+            class="w-full aspect-video bg-cover bg-center rounded-lg"
+            style="background-image: url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2070');"
+          >
+          </div>
+          <h3 class="text-xl font-bold text-foreground">Efektywność treningów</h3>
+          <p class="text-muted-foreground">Spersonalizowane plany sprawiają, że treningi przynoszą lepsze rezultaty.</p>
+        </div>
+
+        <!-- Benefit 3 -->
+        <div class="flex flex-col gap-4">
+          <div
+            class="w-full aspect-video bg-cover bg-center rounded-lg"
+            style="background-image: url('https://images.unsplash.com/photo-1549576490-b0b4831ef60a?q=80&w=2070');"
+          >
+          </div>
+          <h3 class="text-xl font-bold text-foreground">Oszczędność czasu</h3>
+          <p class="text-muted-foreground">Skup się na treningu, a nie na planowaniu i analizie.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots Section -->
+  <section class="py-16 sm:py-24" id="screenshots">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto">
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">Zobacz jak wygląda aplikacja</h2>
+      </div>
+      <div class="mt-12 grid gap-8 md:grid-cols-3">
+        <div
+          class="w-full aspect-video bg-cover bg-center rounded-lg border border-border/50"
+          style="background-image: url('https://images.unsplash.com/photo-1434596922112-19c563067271?q=80&w=2070');"
+        >
+        </div>
+        <div
+          class="w-full aspect-video bg-cover bg-center rounded-lg border border-border/50"
+          style="background-image: url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2070');"
+        >
+        </div>
+        <div
+          class="w-full aspect-video bg-cover bg-center rounded-lg border border-border/50"
+          style="background-image: url('https://images.unsplash.com/photo-1571902943202-507ec2618e8f?q=80&w=2070');"
+        >
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-border/50 bg-card/30 backdrop-blur-sm">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-sm text-muted-foreground">
+      <p>&copy; 2024 Gym Track. Wszelkie prawa zastrzeżone.</p>
+    </div>
+  </footer>
 </Layout>

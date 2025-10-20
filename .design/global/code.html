@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Space+Grotesk%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<title>Gym Track - Add Exercises</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#3b82f6",
+              "background-light": "#f8f6f8",
+              "background-dark": "#0a0a0a",
+            },
+            fontFamily: {
+              "display": ["Space Grotesk", "Noto Sans", "sans-serif"]
+            },
+            borderRadius: {
+              "DEFAULT": "0.5rem",
+              "lg": "0.75rem",
+              "xl": "1rem",
+              "full": "9999px"
+            },
+          },
+        },
+      }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
+<div class="flex h-auto min-h-screen w-full flex-col">
+<div class="flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-gray-200/10 dark:border-gray-800 px-10 py-3">
+<div class="flex items-center gap-4 text-gray-900 dark:text-white">
+<span class="material-symbols-outlined text-primary text-3xl">
+              fitness_center
+            </span>
+<h2 class="text-lg font-bold">Gym Track</h2>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-sm font-medium text-gray-400 hover:text-primary" href="#">Dashboard</a>
+<a class="text-sm font-medium hover:text-primary text-primary" href="#">Plans</a>
+<a class="text-sm font-medium text-gray-400 hover:text-primary" href="#">Workouts</a>
+<a class="text-sm font-medium text-gray-400 hover:text-primary" href="#">Exercises</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700">
+<span class="material-symbols-outlined">
+                add
+              </span>
+</button>
+<div class="h-10 w-10 rounded-full bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAXKqTFl4v0mKuAphT9BK1m5HHdVjM0lDoGu448plZ2ERWUfgzxQceJAOVaY20_jK7_lNqCPxtJuxB8-ehlBzTIgoNDpr-3_w3PJKvP27iKOSnsxXWw_6skD9-eoHj3CYxXa0QE5_F3no_k1wz-9MOptTbUq7bwQc7KxA5D1KkJ8ESphFKE053qCssvGPmr_tOxLrU1aabTdEXcTDcXvvTQu3O29ZKhVCN4EfpvF8wpdP3Kja6C1BPdZFR9-6ZG42ZSsg_8I8VDNb2_");'></div>
+</div>
+</header>
+<main class="flex flex-1 justify-center py-8 px-4 sm:px-6 lg:px-8">
+<div class="w-full max-w-6xl space-y-8">
+<div>
+<h1 class="text-3xl font-bold tracking-tight text-gray-50">Add Exercises to Plan: 'Push Day'</h1>
+<p class="mt-2 text-sm text-gray-400">Search for exercises from the database and add them to your training plan. Define sets, reps, and weight for each exercise.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<div class="space-y-6">
+<section>
+<h2 class="text-xl font-bold text-gray-50 mb-4">Available Exercises</h2>
+<div class="relative">
+<span class="material-symbols-outlined pointer-events-none absolute top-3.5 left-4 text-gray-400">
+                search
+              </span>
+<input class="w-full rounded-lg border border-gray-800 bg-background-dark py-3 pl-12 pr-4 text-gray-50 placeholder-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary" placeholder="Search for exercises" type="text"/>
+</div>
+<div class="mt-4 overflow-hidden rounded-lg border border-gray-800">
+<div class="max-h-[460px] overflow-y-auto">
+<table class="min-w-full divide-y divide-gray-800">
+<thead class="bg-gray-900 sticky top-0">
+<tr>
+<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400" scope="col">Exercise Name</th>
+<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400" scope="col">Muscle Group</th>
+<th class="relative px-6 py-3" scope="col"><span class="sr-only">Add</span></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-800 bg-background-dark">
+<tr>
+<td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-50">Bench Press</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-gray-400">Chest</td>
+<td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+<button class="flex items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary hover:bg-primary/20">
+<span class="material-symbols-outlined text-base">add_circle</span>
+<span>Add</span>
+</button>
+</td>
+</tr>
+<tr>
+<td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-50">Incline Dumbbell Press</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-gray-400">Chest</td>
+<td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+<button class="flex items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary hover:bg-primary/20">
+<span class="material-symbols-outlined text-base">add_circle</span>
+<span>Add</span>
+</button>
+</td>
+</tr>
+<tr>
+<td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-50">Overhead Press</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-gray-400">Shoulders</td>
+<td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+<button class="flex items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary hover:bg-primary/20">
+<span class="material-symbols-outlined text-base">add_circle</span>
+<span>Add</span>
+</button>
+</td>
+</tr>
+<tr>
+<td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-50">Lateral Raises</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-gray-400">Shoulders</td>
+<td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+<button class="flex items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary hover:bg-primary/20">
+<span class="material-symbols-outlined text-base">add_circle</span>
+<span>Add</span>
+</button>
+</td>
+</tr>
+<tr>
+<td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-50">Tricep Pushdowns</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-gray-400">Triceps</td>
+<td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+<button class="flex items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary hover:bg-primary/20">
+<span class="material-symbols-outlined text-base">add_circle</span>
+<span>Add</span>
+</button>
+</td>
+</tr>
+<tr>
+<td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-50">Skull Crushers</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-gray-400">Triceps</td>
+<td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+<button class="flex items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary hover:bg-primary/20">
+<span class="material-symbols-outlined text-base">add_circle</span>
+<span>Add</span>
+</button>
+</td>
+</tr>
+<tr>
+<td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-50">Dips</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-gray-400">Chest, Triceps</td>
+<td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+<button class="flex items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary hover:bg-primary/20">
+<span class="material-symbols-outlined text-base">add_circle</span>
+<span>Add</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</div>
+<div class="space-y-6">
+<section>
+<h2 class="text-xl font-bold text-gray-50 mb-4">Exercises in Plan</h2>
+<div class="space-y-4">
+<div class="rounded-lg border border-gray-800 bg-gray-900/50 p-4">
+<div class="flex items-center justify-between">
+<h3 class="font-semibold text-gray-50">Bench Press</h3>
+<button class="text-gray-400 hover:text-red-500">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<div class="mt-4 grid grid-cols-3 gap-4">
+<div>
+<label class="block text-xs font-medium text-gray-400" for="sets-bench-press">Sets</label>
+<input class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-gray-50 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" id="sets-bench-press" type="number" value="3"/>
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-400" for="reps-bench-press">Reps</label>
+<input class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-gray-50 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" id="reps-bench-press" type="number" value="8"/>
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-400" for="weight-bench-press">Weight (kg)</label>
+<input class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-gray-50 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" id="weight-bench-press" type="number" value="60"/>
+</div>
+</div>
+</div>
+<div class="rounded-lg border border-gray-800 bg-gray-900/50 p-4">
+<div class="flex items-center justify-between">
+<h3 class="font-semibold text-gray-50">Incline Dumbbell Press</h3>
+<button class="text-gray-400 hover:text-red-500">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<div class="mt-4 grid grid-cols-3 gap-4">
+<div>
+<label class="block text-xs font-medium text-gray-400" for="sets-incline-press">Sets</label>
+<input class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-gray-50 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" id="sets-incline-press" type="number" value="3"/>
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-400" for="reps-incline-press">Reps</label>
+<input class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-gray-50 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" id="reps-incline-press" type="number" value="10"/>
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-400" for="weight-incline-press">Weight (kg)</label>
+<input class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-gray-50 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" id="weight-incline-press" type="number" value="20"/>
+</div>
+</div>
+</div>
+<div class="rounded-lg border border-gray-800 bg-gray-900/50 p-4">
+<div class="flex items-center justify-between">
+<h3 class="font-semibold text-gray-50">Overhead Press</h3>
+<button class="text-gray-400 hover:text-red-500">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<div class="mt-4 grid grid-cols-3 gap-4">
+<div>
+<label class="block text-xs font-medium text-gray-400" for="sets-overhead-press">Sets</label>
+<input class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-gray-50 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" id="sets-overhead-press" type="number" value="3"/>
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-400" for="reps-overhead-press">Reps</label>
+<input class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-gray-50 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" id="reps-overhead-press" type="number" value="8"/>
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-400" for="weight-overhead-press">Weight (kg)</label>
+<input class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-gray-50 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" id="weight-overhead-press" type="number" value="40"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div class="flex justify-end pt-4">
+<button class="flex min-w-[120px] cursor-pointer items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-primary/90">
+                Save Plan
+              </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>
