@@ -1,24 +1,44 @@
 ---
 import "../styles/global.css";
+import Navigation from "../components/Navigation";
+import AppScrollArea from "../components/AppScrollArea";
 
 interface Props {
   title?: string;
+  showNavigation?: boolean;
 }
 
-const { title = "10x Astro Starter" } = Astro.props;
+const { title = "Gym Track", showNavigation = true } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="pl" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="generator" content={Astro.generator} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
     <title>{title}</title>
   </head>
-  <body>
-    <slot />
+  <body class="font-['Space_Grotesk']">
+    <AppScrollArea client:load>
+      <div class="flex h-auto min-h-screen w-full flex-col">
+        {showNavigation && <Navigation client:load currentPath={Astro.url.pathname} />}
+        <main class="flex-grow">
+          <slot />
+        </main>
+      </div>
+    </AppScrollArea>
   </body>
 </html>
 
@@ -28,5 +48,6 @@ const { title = "10x Astro Starter" } = Astro.props;
     margin: 0;
     width: 100%;
     height: 100%;
+    overflow: hidden;
   }
 </style>
