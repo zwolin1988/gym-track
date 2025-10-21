@@ -3,7 +3,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { validateLoginForm, type ValidationErrors } from "@/lib/validation/auth.validation";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -14,7 +13,6 @@ interface LoginFormProps {
 interface LoginFormState {
   email: string;
   password: string;
-  rememberMe: boolean;
   isLoading: boolean;
   errors: ValidationErrors;
   showPassword: boolean;
@@ -24,7 +22,6 @@ export function LoginForm({ redirectUrl = "/dashboard" }: LoginFormProps) {
   const [formState, setFormState] = React.useState<LoginFormState>({
     email: "",
     password: "",
-    rememberMe: false,
     isLoading: false,
     errors: {},
     showPassword: false,
@@ -63,6 +60,8 @@ export function LoginForm({ redirectUrl = "/dashboard" }: LoginFormProps) {
     });
 
     if (Object.keys(validationErrors).length > 0) {
+      const firstError = Object.values(validationErrors)[0];
+      toast.error(firstError || "Sprawdź poprawność danych");
       setFormState((prev) => ({
         ...prev,
         errors: validationErrors,
@@ -72,7 +71,6 @@ export function LoginForm({ redirectUrl = "/dashboard" }: LoginFormProps) {
     }
 
     try {
-      // Symulacja API call - będzie zastąpione prawdziwym endpointem
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -85,11 +83,15 @@ export function LoginForm({ redirectUrl = "/dashboard" }: LoginFormProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Logowanie nie powiodło się");
+        const errorMessage = data.error || "Logowanie nie powiodło się";
+        throw new Error(errorMessage);
       }
 
       // Sukces
       toast.success("Zalogowano pomyślnie");
+
+      // Delay redirect to ensure toast is visible
+      await new Promise((resolve) => setTimeout(resolve, 500));
       window.location.href = redirectUrl;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Wystąpił nieoczekiwany błąd";
@@ -107,7 +109,10 @@ export function LoginForm({ redirectUrl = "/dashboard" }: LoginFormProps) {
     <div className="w-full">
       <form onSubmit={handleSubmit} className="space-y-6">
         {formState.errors.general && (
-          <div className="rounded-lg bg-red-500/10 p-3 text-sm text-red-500">{formState.errors.general}</div>
+          <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-4 text-sm text-red-500 flex items-start gap-2">
+            <span className="material-symbols-outlined text-base">error</span>
+            <span className="flex-1">{formState.errors.general}</span>
+          </div>
         )}
 
         <div className="space-y-2">
@@ -117,7 +122,7 @@ export function LoginForm({ redirectUrl = "/dashboard" }: LoginFormProps) {
           <Input
             id="email"
             type="email"
-            placeholder="Enter your email"
+            placeholder="Podaj login"
             value={formState.email}
             onChange={updateField("email")}
             onBlur={handleBlur("email")}
@@ -140,7 +145,7 @@ export function LoginForm({ redirectUrl = "/dashboard" }: LoginFormProps) {
             <Input
               id="password"
               type={formState.showPassword ? "text" : "password"}
-              placeholder="Enter your password"
+              placeholder="Podaj hasło"
               value={formState.password}
               onChange={updateField("password")}
               onBlur={handleBlur("password")}
@@ -152,7 +157,7 @@ export function LoginForm({ redirectUrl = "/dashboard" }: LoginFormProps) {
             <button
               type="button"
               onClick={() => setFormState((prev) => ({ ...prev, showPassword: !prev.showPassword }))}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-300 cursor-pointer"
             >
               {formState.showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
@@ -164,27 +169,6 @@ export function LoginForm({ redirectUrl = "/dashboard" }: LoginFormProps) {
           )}
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="remember"
-              checked={formState.rememberMe}
-              onCheckedChange={(checked) =>
-                setFormState((prev) => ({
-                  ...prev,
-                  rememberMe: checked === true,
-                }))
-              }
-            />
-            <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
-              Zapamiętaj mnie
-            </Label>
-          </div>
-          <a href="/auth/reset-password" className="text-sm font-medium text-primary hover:underline">
-            Zapomniałeś hasła?
-          </a>
-        </div>
-
         <Button type="submit" size="lg" className="w-full" disabled={formState.isLoading}>
           {formState.isLoading ? "Logowanie..." : "Zaloguj się"}
         </Button>
@@ -192,7 +176,7 @@ export function LoginForm({ redirectUrl = "/dashboard" }: LoginFormProps) {
 
       <p className="text-center text-sm text-neutral-400 pt-4">
         Nie masz konta?{" "}
-        <a href="/auth/register" className="font-medium text-primary hover:underline">
+        <a href="/auth/register" className="font-medium text-primary hover:underline cursor-pointer">
           Zarejestruj się
         </a>
       </p>

@@ -56,9 +56,10 @@ Wszystkie strony autentykacji są dostępne publicznie i renderowane server-side
 src/pages/
 ├── auth/
 │   ├── register.astro      # Strona rejestracji (US-001)
-│   ├── login.astro          # Strona logowania (US-002)
-│   └── reset-password.astro # Strona odzyskiwania hasła (future scope)
+│   └── login.astro          # Strona logowania (US-002)
 ```
+
+**Uwaga**: Strona `reset-password.astro` jest poza zakresem MVP (PRD 4.2.12).
 
 **Charakterystyka stron autentykacji:**
 
@@ -416,24 +417,7 @@ interface LoginFormState {
 
 Analogiczna do `RegisterForm.tsx`, ale z uproszczonymi polami (bez confirmPassword) i linkiem do odzyskiwania hasła.
 
-**Dodatkowe elementy:**
-
-```tsx
-<div className="flex items-center justify-between">
-  <div className="flex items-center">
-    <Checkbox id="remember" />
-    <Label htmlFor="remember" className="ml-2 text-sm">
-      Zapamiętaj mnie
-    </Label>
-  </div>
-  <a
-    href="/auth/reset-password"
-    className="text-sm font-medium text-primary hover:underline"
-  >
-    Zapomniałeś hasła?
-  </a>
-</div>
-```
+**Uwaga**: Funkcje "Zapamiętaj mnie" i "Zapomniałeś hasła?" są poza zakresem MVP zgodnie z PRD 4.2.12. Supabase domyślnie zarządza sesjami z refresh tokenami (30 dni), więc checkbox "Zapamiętaj mnie" nie jest wymagany w MVP.
 
 **Logika obsługi formularza:**
 
@@ -503,13 +487,14 @@ Komponenty wykorzystane w formularzach autentykacji:
 - `Input` (`src/components/ui/input.tsx`)
 - `Label` (`src/components/ui/label.tsx`)
 - `Button` (`src/components/ui/button.tsx`)
-- `Checkbox` (`src/components/ui/checkbox.tsx`)
 
 **Instalacja komponentów:**
 
 ```bash
-npx shadcn@latest add card input label button checkbox
+npx shadcn@latest add card input label button
 ```
+
+**Uwaga**: `checkbox` nie jest wymagany w MVP (brak funkcji "Zapamiętaj mnie" zgodnie z PRD 4.2.12)
 
 ### 2.5. Toast Notifications
 
@@ -1173,8 +1158,11 @@ Projekt Supabase jest już skonfigurowany (obecność `SUPABASE_URL` i `SUPABASE
 **Wymagane kroki konfiguracyjne w panelu Supabase:**
 
 1. **Authentication → Providers**: Upewnić się, że Email provider jest włączony
-2. **Authentication → Email Templates**: Dostosować szablony emaili (opcjonalne)
-3. **Authentication → URL Configuration**:
+2. **Authentication → Email Settings**:
+   - **WAŻNE dla MVP**: Wyłączyć "Enable email confirmations" (Settings → Auth → Email → "Confirm email" = OFF)
+   - Zgodnie z PRD, email confirmation nie jest wymagany w MVP
+3. **Authentication → Email Templates**: Dostosować szablony emaili (opcjonalne, poza zakresem MVP)
+4. **Authentication → URL Configuration**:
    - Site URL: `http://localhost:3000` (dev) / produkcyjna domena (prod)
    - Redirect URLs: Dodać dozwolone URL przekierowań
 
@@ -1519,10 +1507,11 @@ const { email, password } = validationResult.data; // Type-safe!
 | Kod błędu Supabase | Scenariusz | Komunikat dla użytkownika |
 |-------------------|------------|---------------------------|
 | `Invalid login credentials` | Nieprawidłowy email lub hasło | "Nieprawidłowy email lub hasło" |
-| `Email not confirmed` | Email nie został potwierdzony | "Potwierdź swój adres email, aby się zalogować" |
 | Inne | Nieoczekiwany błąd | "Wystąpił nieoczekiwany błąd. Spróbuj ponownie." |
 
-**WAŻNE**: Ze względów bezpieczeństwa, NIE rozróżniamy komunikatów "nieprawidłowy email" vs "nieprawidłowe hasło" → zawsze zwracamy ogólny komunikat "Nieprawidłowy email lub hasło".
+**WAŻNE**:
+- Ze względów bezpieczeństwa, NIE rozróżniamy komunikatów "nieprawidłowy email" vs "nieprawidłowe hasło" → zawsze zwracamy ogólny komunikat "Nieprawidłowy email lub hasło".
+- **Email Confirmation**: W MVP wyłączamy wymaganie potwierdzenia emaila w Supabase Auth (Settings → Email → "Enable email confirmations" = OFF). Obsługa błędu `Email not confirmed` nie jest wymagana w MVP zgodnie z PRD.
 
 ### 5.4. Toast Notifications (US-037)
 
@@ -2345,8 +2334,10 @@ export type LoginInput = z.infer<typeof loginSchema>;
 
 #### UI (Shadcn/ui components)
 
-- [ ] Instalacja: `card`, `input`, `label`, `button`, `checkbox`
+- [ ] Instalacja: `card`, `input`, `label`, `button`
 - [ ] Instalacja: `sonner` (toast notifications)
+
+**Uwaga**: `checkbox` nie jest wymagany w MVP (brak funkcji "Zapamiętaj mnie" zgodnie z PRD 4.2.12)
 
 #### Database (Supabase)
 

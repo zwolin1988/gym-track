@@ -121,7 +121,7 @@ export function RegisterForm({ redirectUrl = "/dashboard" }: RegisterFormProps) 
           <Input
             id="email"
             type="email"
-            placeholder="Enter your email"
+            placeholder="Podaj email"
             value={formState.email}
             onChange={updateField("email")}
             onBlur={handleBlur("email")}
@@ -144,7 +144,7 @@ export function RegisterForm({ redirectUrl = "/dashboard" }: RegisterFormProps) 
             <Input
               id="password"
               type={formState.showPassword ? "text" : "password"}
-              placeholder="Enter your password"
+              placeholder="Podaj hasło"
               value={formState.password}
               onChange={updateField("password")}
               onBlur={handleBlur("password")}
@@ -156,7 +156,7 @@ export function RegisterForm({ redirectUrl = "/dashboard" }: RegisterFormProps) 
             <button
               type="button"
               onClick={() => setFormState((prev) => ({ ...prev, showPassword: !prev.showPassword }))}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-300 cursor-pointer"
             >
               {formState.showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
@@ -176,7 +176,7 @@ export function RegisterForm({ redirectUrl = "/dashboard" }: RegisterFormProps) 
             <Input
               id="confirmPassword"
               type={formState.showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm your password"
+              placeholder="Potwierdź hasło"
               value={formState.confirmPassword}
               onChange={updateField("confirmPassword")}
               onBlur={handleBlur("confirmPassword")}
@@ -193,7 +193,7 @@ export function RegisterForm({ redirectUrl = "/dashboard" }: RegisterFormProps) 
                   showConfirmPassword: !prev.showConfirmPassword,
                 }))
               }
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-300 cursor-pointer"
             >
               {formState.showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
@@ -212,7 +212,7 @@ export function RegisterForm({ redirectUrl = "/dashboard" }: RegisterFormProps) 
 
       <p className="text-center text-sm text-neutral-400 pt-4">
         Masz już konto?{" "}
-        <a href="/auth/login" className="font-medium text-primary hover:underline">
+        <a href="/auth/login" className="font-medium text-primary hover:underline cursor-pointer">
           Zaloguj się
         </a>
       </p>

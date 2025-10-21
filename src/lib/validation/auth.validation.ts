@@ -80,16 +80,6 @@ export function validateLoginForm(data: LoginFormData): ValidationErrors {
 }
 
 /**
- * Validates reset password form (email only)
+ * Note: Reset password functionality is excluded from MVP (PRD 4.2.12)
+ * validateResetPasswordForm has been removed
  */
-export function validateResetPasswordForm(email: string): ValidationErrors {
-  const errors: ValidationErrors = {};
-
-  if (!email) {
-    errors.email = "Email jest wymagany";
-  } else if (!isValidEmail(email)) {
-    errors.email = "Nieprawidłowy format adresu email";
-  }
-
-  return errors;
-}

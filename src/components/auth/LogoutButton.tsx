@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 interface LogoutButtonProps {
   variant?: "default" | "ghost" | "outline" | "secondary" | "destructive" | "link";
   children?: React.ReactNode;
+  className?: string;
 }
 
-export function LogoutButton({ variant = "ghost", children }: LogoutButtonProps) {
+export function LogoutButton({ variant = "ghost", children, className }: LogoutButtonProps) {
   const [isLoading, setIsLoading] = React.useState(false);
 
   const handleLogout = async () => {
@@ -33,7 +34,7 @@ export function LogoutButton({ variant = "ghost", children }: LogoutButtonProps)
   };
 
   return (
-    <Button variant={variant} onClick={handleLogout} disabled={isLoading}>
+    <Button variant={variant} onClick={handleLogout} disabled={isLoading} className={className}>
       {isLoading ? "Wylogowywanie..." : children || "Wyloguj"}
     </Button>
   );

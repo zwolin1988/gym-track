@@ -2,10 +2,13 @@
 import Layout from "../layouts/Layout.astro";
 import HomeNavigation from "../components/HomeNavigation";
 import AstroButton from "../components/AstroButton";
+
+// Get authenticated user from middleware
+const user = Astro.locals.user;
 ---
 
 <Layout title="Gym Track - Śledź swoje postępy treningowe" showNavigation={false}>
-  <HomeNavigation client:load />
+  <HomeNavigation client:load user={user && user.email ? { email: user.email, id: user.id } : null} />
 
   <!-- Hero Section -->
   <section class="relative flex min-h-[60vh] items-center justify-center py-20 md:py-32">
@@ -21,7 +24,9 @@ import AstroButton from "../components/AstroButton";
       <p class="mt-6 max-w-2xl mx-auto text-lg text-gray-300">
         Twórz plany, monitoruj ćwiczenia i analizuj wyniki. Gym Track to Twój partner w drodze do lepszej formy.
       </p>
-      <AstroButton client:load className="mt-8"> Rozpocznij Trening </AstroButton>
+      <AstroButton client:load className="mt-8" href={user ? "/dashboard" : "/auth/register"}>
+        Rozpocznij Trening
+      </AstroButton>
     </div>
   </section>
 
