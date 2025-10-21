@@ -254,6 +254,14 @@ auth.users (1) ──< (N) workouts
 - Użytkownik może mieć wiele treningów
 - Kolumny `user_id` w tabelach nie mają jawnego FOREIGN KEY do `auth.users` (zarządzane przez Supabase Auth)
 
+**WAŻNE - Zarządzanie user_id:**
+- `user_id` **ZAWSZE** pochodzi z Supabase Auth (`auth.uid()`)
+- **NIGDY** nie ustawiaj ręcznie `user_id` w kodzie aplikacji
+- W Astro routes dostęp do użytkownika: `context.locals.user.id`
+- W RLS policies używaj: `auth.uid()` do filtrowania danych
+- Przy INSERT operacjach: `user_id` musi być ustawiony na `context.locals.user.id` lub `auth.uid()`
+- Przy SELECT/UPDATE/DELETE: RLS automatycznie filtruje po `auth.uid()`
+
 ---
 
 ## 3. Indeksy
@@ -773,6 +781,114 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 7. Włączenie RLS i utworzenie policies
 8. Dodanie triggers i funkcji
 9. Załadowanie danych seed (50 ćwiczeń, 5-10 kategorii)
+
+### 6.13. Przykłady Użycia Supabase Auth z Bazą Danych
+
+#### Przykład 1: Tworzenie planu treningowego (INSERT)
+```typescript
+// W Astro API route: src/pages/api/workout-plans.ts
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = async ({ request, locals }) => {
+  const user = locals.user;
+
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
+
+  const body = await request.json();
+
+  // INSERT: user_id MUSI być ustawione jawnie
+  const { data, error } = await locals.supabase
+    .from('workout_plans')
+    .insert({
+      name: body.name,
+      description: body.description,
+      user_id: user.id, // ✅ Pobrane z Supabase Auth
+    })
+    .select()
+    .single();
+
+  // RLS WITH CHECK policy sprawdzi: user_id = auth.uid()
+
+  return new Response(JSON.stringify(data), { status: 201 });
+};
+```
+
+#### Przykład 2: Pobieranie planów użytkownika (SELECT)
+```typescript
+export const GET: APIRoute = async ({ locals }) => {
+  const user = locals.user;
+
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
+
+  // SELECT: RLS automatycznie filtruje WHERE user_id = auth.uid()
+  const { data, error } = await locals.supabase
+    .from('workout_plans')
+    .select('*');
+    // ❌ NIE dodawaj: .eq('user_id', user.id)
+    // ✅ RLS zrobi to automatycznie!
+
+  return new Response(JSON.stringify(data), { status: 200 });
+};
+```
+
+#### Przykład 3: Aktualizacja planu (UPDATE)
+```typescript
+export const PATCH: APIRoute = async ({ params, request, locals }) => {
+  const user = locals.user;
+
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
+
+  const { id } = params;
+  const body = await request.json();
+
+  // UPDATE: RLS sprawdzi czy user_id = auth.uid()
+  const { data, error } = await locals.supabase
+    .from('workout_plans')
+    .update({
+      name: body.name,
+      description: body.description,
+      // ❌ NIE aktualizuj user_id - jest immutable
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  // Jeśli użytkownik nie jest właścicielem, RLS zwróci null
+  if (!data && !error) {
+    return new Response(JSON.stringify({ error: 'Not found or unauthorized' }), { status: 404 });
+  }
+
+  return new Response(JSON.stringify(data), { status: 200 });
+};
+```
+
+#### Przykład 4: RLS Policy w praktyce
+```sql
+-- Policy dla SELECT
+CREATE POLICY "authenticated_users_can_read_own_workout_plans"
+  ON workout_plans
+  FOR SELECT
+  TO authenticated
+  USING (user_id = auth.uid() AND deleted_at IS NULL);
+
+-- W praktyce:
+-- 1. Użytkownik A (UUID: aaa-111) wykonuje: SELECT * FROM workout_plans;
+-- 2. RLS automatycznie dodaje: WHERE user_id = 'aaa-111' AND deleted_at IS NULL
+-- 3. Użytkownik A widzi TYLKO swoje plany, nawet bez .eq('user_id', ...)
+```
+
+#### Kluczowe Zasady:
+1. **INSERT**: Zawsze ustaw `user_id: context.locals.user.id`
+2. **SELECT/UPDATE/DELETE**: Nigdy nie filtruj ręcznie po `user_id` - RLS to robi
+3. **Używaj `context.locals.supabase`**: Ten klient jest pre-authenticated
+4. **Ufaj RLS**: Policies są na poziomie bazy danych - bezpieczniejsze niż kod aplikacji
+5. **Sprawdzaj autentykację**: Zawsze weryfikuj `context.locals.user` przed operacją
 
 ---
 

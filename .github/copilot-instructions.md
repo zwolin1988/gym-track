@@ -109,5 +109,21 @@ When modifying the directory structure, always update this section.
 - Use Supabase for backend services, including authentication and database interactions.
 - Follow Supabase guidelines for security and performance.
 - Use Zod schemas to validate data exchanged with the backend.
+
+#### Authentication with Supabase Auth
+- **User Management**: All users are managed through Supabase Auth (registration, login, sessions)
+- **User ID**: Each authenticated user has a unique `user_id` from Supabase Auth (`auth.uid()`)
+- **Access User**: In Astro routes, access authenticated user via `context.locals.user`
+- **Authenticated Client**: Use `context.locals.supabase` for database operations (pre-configured with user session)
+- **NEVER** manually set or manage `user_id` in application code - always derive from Supabase Auth
+
+#### Row Level Security (RLS)
+- **Enable RLS** on all tables that store user data
+- **RLS Policies**: Filter data by `auth.uid() = user_id` to ensure users only access their own data
+- **Data Isolation**: Trust RLS policies to handle data filtering - don't duplicate filtering logic in application code
+- **Example Policy**: `CREATE POLICY "Users view own data" ON workout_plans FOR SELECT USING (auth.uid() = user_id);`
+
+#### Database Client Usage
 - Use supabase from context.locals in Astro routes instead of importing supabaseClient directly
 - Use SupabaseClient type from `src/db/supabase.client.ts`, not from `@supabase/supabase-js`
+- The client from `context.locals.supabase` is pre-authenticated with the current user's session

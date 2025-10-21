@@ -1,80 +1,128 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: false
 ---
-# Supabase Astro Initialization
+# Supabase Astro Initialization with Authentication
 
-This document provides a reproducible guide to create the necessary file structure for integrating Supabase with your Astro project.
+This document provides a reproducible guide to create the necessary file structure for integrating Supabase with your Astro project, including **Supabase Auth** for user authentication and session management.
 
 ## Prerequisites
 
 - Your project should use Astro 5, TypeScript 5, React 19, and Tailwind 4.
-- Install the `@supabase/supabase-js` package.
+- Install the `@supabase/ssr` package (for SSR-compatible auth)
+- Install the `@supabase/supabase-js` package
 - Ensure that `/supabase/config.toml` exists
 - Ensure that a file `/src/db/database.types.ts` exists and contains the correct type definitions for your database.
 
-IMPORTANT: Check prerequisites before perfoming actions below. If they're not met, stop and ask a user for the fix.
+IMPORTANT: Check prerequisites before performing actions below. If they're not met, stop and ask a user for the fix.
+
+## Authentication Architecture
+
+This setup uses **Supabase Auth** as the primary authentication system:
+- All users are managed in `auth.users` table by Supabase
+- User sessions are handled via JWT tokens and cookies
+- `user_id` in all tables references `auth.uid()` (current authenticated user)
+- Row Level Security (RLS) policies use `auth.uid()` to filter data
+- Middleware provides `context.locals.user` (authenticated user) and `context.locals.supabase` (authenticated client)
 
 ## File Structure and Setup
 
-### 1. Supabase Client Initialization
+### 1. Supabase Client Type Definition
 
 Create the file `/src/db/supabase.client.ts` with the following content:
 
 ```ts
-import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 
-import type { Database } from '../db/database.types.ts';
-
-const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
-
-export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey);
+// Type definition for authenticated Supabase client
+// This is used in App.Locals interface
+export type TypedSupabaseClient = SupabaseClient<Database>;
 ```
 
-This file initializes the Supabase client using the environment variables `SUPABASE_URL` and `SUPABASE_KEY`.
+**IMPORTANT**: Do NOT create a global Supabase client instance here. The authenticated client will be created per-request in middleware using `@supabase/ssr` to ensure proper session handling.
 
 
-### 2. Middleware Setup
+### 2. Middleware Setup with Authentication
 
 Create the file `/src/middleware/index.ts` with the following content:
 
 ```ts
 import { defineMiddleware } from 'astro:middleware';
+import { createServerClient } from '@supabase/ssr';
+import type { Database } from '../db/database.types';
 
-import { supabaseClient } from '../db/supabase.client.ts';
+export const onRequest = defineMiddleware(async (context, next) => {
+  // Create a Supabase client with cookie handling for SSR
+  const supabase = createServerClient<Database>(
+    import.meta.env.SUPABASE_URL,
+    import.meta.env.SUPABASE_KEY,
+    {
+      cookies: {
+        get: (key) => context.cookies.get(key)?.value,
+        set: (key, value, options) => {
+          context.cookies.set(key, value, options);
+        },
+        remove: (key, options) => {
+          context.cookies.delete(key, options);
+        },
+      },
+    }
+  );
 
-export const onRequest = defineMiddleware((context, next) => {
-  context.locals.supabase = supabaseClient;
+  // Get the authenticated user from Supabase Auth
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Make both the authenticated client and user available in context.locals
+  context.locals.supabase = supabase;
+  context.locals.user = user;
+
+  // Optional: Protect routes (uncomment and modify as needed)
+  // const protectedPaths = ['/dashboard', '/workouts', '/plans'];
+  // const isProtectedPath = protectedPaths.some(path =>
+  //   context.url.pathname.startsWith(path)
+  // );
+  //
+  // if (isProtectedPath && !user) {
+  //   return context.redirect('/login');
+  // }
+
   return next();
 });
 ```
 
-This middleware adds the Supabase client to the Astro context locals, making it available throughout your application.
+**Key Points**:
+- Uses `@supabase/ssr` for SSR-compatible authentication
+- Creates a **new client per request** with proper cookie handling
+- Retrieves authenticated user via `supabase.auth.getUser()`
+- Provides `context.locals.supabase` (authenticated client) and `context.locals.user` (user object)
+- Optionally protect routes by checking user authentication
 
 
 ### 3. TypeScript Environment Definitions
 
-Create the file `src/env.d.ts` with the following content:
+Create or update the file `src/env.d.ts` with the following content:
 
 ```ts
 /// <reference types="astro/client" />
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from './db/database.types.ts';
+import type { User } from '@supabase/supabase-js';
+import type { TypedSupabaseClient } from './db/supabase.client';
 
-declare global {
-  namespace App {
-    interface Locals {
-      supabase: SupabaseClient<Database>;
-    }
+declare namespace App {
+  interface Locals {
+    supabase: TypedSupabaseClient;
+    user: User | null;
   }
 }
 
 interface ImportMetaEnv {
   readonly SUPABASE_URL: string;
   readonly SUPABASE_KEY: string;
+  readonly OPENROUTER_API_KEY: string;
 }
 
 interface ImportMeta {
@@ -82,4 +130,212 @@ interface ImportMeta {
 }
 ```
 
-This file augments the global types to include the Supabase client on the Astro `App.Locals` object, ensuring proper typing throughout your application.
+**Key Points**:
+- `supabase`: Typed Supabase client with database schema
+- `user`: Authenticated user from Supabase Auth (null if not logged in)
+- Environment variables are properly typed
+- This enables full TypeScript autocomplete for `context.locals.supabase` and `context.locals.user`
+
+### 4. Example: Protected API Endpoint
+
+Create an example API route to demonstrate authentication:
+
+```ts
+// src/pages/api/example.ts
+import type { APIRoute } from 'astro';
+
+export const GET: APIRoute = async ({ locals }) => {
+  // Check authentication
+  if (!locals.user) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Access authenticated user
+  const userId = locals.user.id;
+  const userEmail = locals.user.email;
+
+  // Use authenticated Supabase client
+  // RLS automatically filters data by auth.uid()
+  const { data, error } = await locals.supabase
+    .from('workout_plans')
+    .select('*');
+
+  if (error) {
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({ user: { id: userId, email: userEmail }, data }),
+    { status: 200, headers: { 'Content-Type': 'application/json' } }
+  );
+};
+```
+
+### 5. Authentication Endpoints
+
+Create authentication API routes:
+
+#### Login (`src/pages/api/auth/login.ts`)
+```ts
+import type { APIRoute } from 'astro';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+export const POST: APIRoute = async ({ request, locals }) => {
+  const body = await request.json();
+  const validation = loginSchema.safeParse(body);
+
+  if (!validation.success) {
+    return new Response(
+      JSON.stringify({ error: 'Invalid input' }),
+      { status: 400 }
+    );
+  }
+
+  const { email, password } = validation.data;
+
+  const { data, error } = await locals.supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 401 }
+    );
+  }
+
+  return new Response(JSON.stringify({ user: data.user }), { status: 200 });
+};
+```
+
+#### Register (`src/pages/api/auth/register.ts`)
+```ts
+import type { APIRoute } from 'astro';
+import { z } from 'zod';
+
+const registerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+export const POST: APIRoute = async ({ request, locals }) => {
+  const body = await request.json();
+  const validation = registerSchema.safeParse(body);
+
+  if (!validation.success) {
+    return new Response(
+      JSON.stringify({ error: 'Invalid input' }),
+      { status: 400 }
+    );
+  }
+
+  const { email, password } = validation.data;
+
+  const { data, error } = await locals.supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 400 }
+    );
+  }
+
+  return new Response(JSON.stringify({ user: data.user }), { status: 201 });
+};
+```
+
+#### Logout (`src/pages/api/auth/logout.ts`)
+```ts
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = async ({ locals }) => {
+  const { error } = await locals.supabase.auth.signOut();
+
+  if (error) {
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500 }
+    );
+  }
+
+  return new Response(null, { status: 204 });
+};
+```
+
+## Important Notes
+
+### Authentication Best Practices
+
+1. **Always check `locals.user`**: Verify authentication before processing requests
+2. **Use `locals.supabase`**: Never import a client directly - always use the authenticated client from context
+3. **Trust RLS**: Let Row Level Security handle data filtering - don't manually filter by `user_id` in SELECT queries
+4. **Set `user_id` on INSERT**: Explicitly set `user_id: locals.user.id` when creating records
+5. **Use Zod for validation**: Always validate input data in API routes
+
+### Common Patterns
+
+#### Creating a resource (INSERT)
+```ts
+const { data, error } = await locals.supabase
+  .from('workout_plans')
+  .insert({
+    name: body.name,
+    user_id: locals.user.id, // ✅ Explicitly set from authenticated user
+  })
+  .select()
+  .single();
+```
+
+#### Reading resources (SELECT)
+```ts
+const { data, error } = await locals.supabase
+  .from('workout_plans')
+  .select('*');
+  // ✅ RLS automatically filters: WHERE user_id = auth.uid()
+  // ❌ Don't add: .eq('user_id', locals.user.id)
+```
+
+#### Updating a resource (UPDATE)
+```ts
+const { data, error } = await locals.supabase
+  .from('workout_plans')
+  .update({ name: body.name })
+  .eq('id', id)
+  .select()
+  .single();
+  // ✅ RLS ensures user owns the record
+```
+
+#### Deleting a resource (DELETE)
+```ts
+const { error } = await locals.supabase
+  .from('workout_plans')
+  .delete()
+  .eq('id', id);
+  // ✅ RLS ensures user owns the record
+```
+
+## Summary
+
+This setup provides:
+- ✅ Supabase Auth integration with Astro SSR
+- ✅ Per-request authenticated clients with cookie handling
+- ✅ Type-safe access to user and database
+- ✅ Row Level Security enforcement via `auth.uid()`
+- ✅ Example authentication endpoints (login, register, logout)
+- ✅ Best practices for CRUD operations with authentication

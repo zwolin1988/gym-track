@@ -1,0 +1,189 @@
+---
+description: Authentication patterns and examples for API routes
+globs: src/pages/api/**/*.ts
+alwaysApply: false
+---
+## Authentication Patterns for API Routes
+
+### Pattern 1: Protected API Endpoint
+
+```typescript
+// src/pages/api/workout-plans/index.ts
+import type { APIRoute } from 'astro';
+
+export const GET: APIRoute = async ({ locals }) => {
+  // 1. Check authentication
+  const user = locals.user;
+
+  if (!user) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // 2. Use authenticated Supabase client
+  // RLS automatically filters by user_id = auth.uid()
+  const { data, error } = await locals.supabase
+    .from('workout_plans')
+    .select('*');
+
+  if (error) {
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // 3. Return data (already filtered by RLS)
+  return new Response(
+    JSON.stringify(data),
+    { status: 200, headers: { 'Content-Type': 'application/json' } }
+  );
+};
+```
+
+### Pattern 2: Create Resource (INSERT)
+
+```typescript
+export const POST: APIRoute = async ({ request, locals }) => {
+  // 1. Check authentication
+  const user = locals.user;
+
+  if (!user) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401 }
+    );
+  }
+
+  // 2. Parse and validate request body
+  const body = await request.json();
+
+  // Use Zod for validation
+  const schema = z.object({
+    name: z.string().min(3),
+    description: z.string().optional()
+  });
+
+  const validation = schema.safeParse(body);
+
+  if (!validation.success) {
+    return new Response(
+      JSON.stringify({ error: 'Invalid input', details: validation.error }),
+      { status: 400 }
+    );
+  }
+
+  // 3. Insert data
+  // RLS WITH CHECK ensures user_id = auth.uid()
+  const { data, error } = await locals.supabase
+    .from('workout_plans')
+    .insert({
+      name: validation.data.name,
+      description: validation.data.description,
+      user_id: user.id, // Set explicitly on INSERT
+    })
+    .select()
+    .single();
+
+  if (error) {
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500 }
+    );
+  }
+
+  return new Response(
+    JSON.stringify(data),
+    { status: 201 }
+  );
+};
+```
+
+### Pattern 3: Update Resource
+
+```typescript
+export const PATCH: APIRoute = async ({ params, request, locals }) => {
+  const user = locals.user;
+
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
+
+  const { id } = params;
+  const body = await request.json();
+
+  // Validate input
+  const schema = z.object({
+    name: z.string().min(3).optional(),
+    description: z.string().optional()
+  });
+
+  const validation = schema.safeParse(body);
+
+  if (!validation.success) {
+    return new Response(JSON.stringify({ error: 'Invalid input' }), { status: 400 });
+  }
+
+  // Update - RLS ensures only owner can update
+  const { data, error } = await locals.supabase
+    .from('workout_plans')
+    .update(validation.data)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  }
+
+  if (!data) {
+    return new Response(JSON.stringify({ error: 'Not found or unauthorized' }), { status: 404 });
+  }
+
+  return new Response(JSON.stringify(data), { status: 200 });
+};
+```
+
+### Pattern 4: Delete Resource
+
+```typescript
+export const DELETE: APIRoute = async ({ params, locals }) => {
+  const user = locals.user;
+
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
+
+  const { id } = params;
+
+  // Delete - RLS ensures only owner can delete
+  const { error } = await locals.supabase
+    .from('workout_plans')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  }
+
+  return new Response(null, { status: 204 });
+};
+```
+
+### Important Notes
+
+1. **Never skip authentication check** - Always verify `locals.user` first
+2. **Let RLS do the filtering** - Don't add `.eq('user_id', user.id)` in SELECT queries
+3. **Set user_id on INSERT** - Explicitly set `user_id: user.id` when creating resources
+4. **Trust RLS for UPDATE/DELETE** - RLS policies prevent unauthorized modifications
+5. **Use Zod for validation** - Always validate input data before database operations
+6. **Return appropriate status codes**:
+   - 200: Success (GET, PATCH)
+   - 201: Created (POST)
+   - 204: No Content (DELETE)
+   - 400: Bad Request (validation errors)
+   - 401: Unauthorized (no user)
+   - 404: Not Found
+   - 500: Server Error

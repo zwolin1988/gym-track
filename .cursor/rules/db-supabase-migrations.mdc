@@ -43,8 +43,76 @@ Write Postgres-compatible SQL code for Supabase migration files that:
 - When creating a new table, you MUST enable Row Level Security (RLS) even if the table is intended for public access.
 - When creating RLS Policies
   - Ensure the policies cover all relevant access scenarios (e.g. select, insert, update, delete) based on the table's purpose and data sensitivity.
-  - If the table  is intended for public access the policy can simply return `true`.
+  - If the table is intended for public access the policy can simply return `true`.
   - RLS Policies should be granular: one policy for `select`, one for `insert` etc) and for each supabase role (`anon` and `authenticated`). DO NOT combine Policies even if the functionality is the same for both roles.
   - Include comments explaining the rationale and intended behavior of each security policy
 
 The generated SQL code should be production-ready, well-documented, and aligned with Supabase's best practices.
+
+## Authentication & User Management
+
+This project uses **Supabase Auth** for user authentication:
+
+- **User Table**: All users are stored in `auth.users` table (managed by Supabase)
+- **User ID**: Each authenticated user has a unique `user_id` of type UUID
+- **Current User**: Use `auth.uid()` function to get current authenticated user's ID
+- **RLS Integration**: RLS policies MUST use `auth.uid()` to filter data by user
+
+### User-Owned Tables
+
+When creating tables that store user-specific data:
+
+1. **Add `user_id` column**:
+   ```sql
+   user_id uuid not null
+   ```
+
+2. **Add comment explaining the column**:
+   ```sql
+   comment on column table_name.user_id is 'Owner of the record. References auth.users via auth.uid(). Used for RLS policy enforcement.';
+   ```
+
+3. **Create RLS policies using `auth.uid()`**:
+   ```sql
+   -- SELECT policy
+   create policy "authenticated_users_can_read_own_records"
+     on table_name
+     for select
+     to authenticated
+     using (user_id = auth.uid());
+
+   -- INSERT policy
+   create policy "authenticated_users_can_create_own_records"
+     on table_name
+     for insert
+     to authenticated
+     with check (user_id = auth.uid());
+
+   -- UPDATE policy
+   create policy "authenticated_users_can_update_own_records"
+     on table_name
+     for update
+     to authenticated
+     using (user_id = auth.uid())
+     with check (user_id = auth.uid());
+
+   -- DELETE policy
+   create policy "authenticated_users_can_delete_own_records"
+     on table_name
+     for delete
+     to authenticated
+     using (user_id = auth.uid());
+   ```
+
+4. **Create index on user_id**:
+   ```sql
+   create index idx_table_name_user on table_name(user_id);
+   ```
+
+### Important Notes
+
+- **NEVER create foreign key** to `auth.users` - it's managed by Supabase Auth
+- **Always use `auth.uid()`** in RLS policies to reference current authenticated user
+- **User ID is UUID** - use `uuid` type for all `user_id` columns
+- **RLS is mandatory** - all user-owned tables must have RLS enabled and policies
+- **Duplicate user_id in child tables** - for efficient RLS without complex joins (see db-plan.md for details)
