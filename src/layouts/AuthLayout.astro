@@ -1,0 +1,67 @@
+---
+import "../styles/global.css";
+import { Toaster } from "@/components/ui/sonner";
+import AppScrollArea from "../components/AppScrollArea";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="pl" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <title>{title} | Gym Track</title>
+    {description && <meta name="description" content={description} />}
+  </head>
+  <body class="font-['Space_Grotesk']">
+    <AppScrollArea client:load>
+      <div class="flex h-auto min-h-screen w-full flex-col">
+        <nav class="border-b border-neutral-800">
+          <div class="container mx-auto px-4 py-4">
+            <a href="/" class="flex items-center gap-3 text-foreground hover:opacity-80 transition-opacity">
+              <span class="material-symbols-outlined text-primary text-3xl">fitness_center</span>
+              <h2 class="text-xl font-bold tracking-tight">Gym Track</h2>
+            </a>
+          </div>
+        </nav>
+        <main class="flex flex-grow items-center justify-center px-4 py-8">
+          <div class="w-full max-w-md space-y-8">
+            <div class="text-center">
+              <h1 class="text-3xl font-bold tracking-tight">Gym Track</h1>
+              <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-400">Śledź swoje postępy treningowe</p>
+            </div>
+            <div class="rounded-2xl bg-[#1E293B] p-8 shadow-xl">
+              <slot />
+            </div>
+          </div>
+        </main>
+      </div>
+    </AppScrollArea>
+    <Toaster position="top-right" richColors closeButton client:load />
+  </body>
+</html>
+
+<style>
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+</style>
