@@ -33,6 +33,13 @@
 --   - One active workout per user enforced via unique partial index
 --   - RLS policies ensure complete data isolation between users
 --   - Global tables (categories, exercises) are read-only for authenticated users
+--
+-- Authentication & User Management:
+--   - All users are managed via Supabase Auth (auth.users table)
+--   - user_id columns reference auth.uid() (current authenticated user)
+--   - RLS policies use auth.uid() to filter data by authenticated user
+--   - NEVER manually set user_id in application code - always use auth.uid() or context.locals.user.id
+--   - RLS policies automatically enforce data isolation at database level
 -- =====================================================
 
 -- =====================================================

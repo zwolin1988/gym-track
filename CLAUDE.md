@@ -149,9 +149,86 @@ Configured in `tsconfig.json` and `components.json`:
 ### Backend and Database
 
 - Use **Supabase** for backend services, authentication, and database
-- Use Supabase client from `context.locals` in Astro routes (not direct imports)
+- **Authentication**: Use Supabase Auth for user management
+  - All user data is managed through Supabase Auth (registration, login, sessions)
+  - User ID from Supabase Auth is used to associate all actions and data with specific users
+  - Access authenticated user via `context.locals.user` in Astro routes
+- **Database Access**: Use Supabase client from `context.locals.supabase` in Astro routes (not direct imports)
+  - This ensures proper authentication context is maintained
+  - The client is pre-configured with the user's session
+- **Row Level Security (RLS)**: All tables must use RLS policies
+  - Policies should filter data by `auth.uid()` (current authenticated user)
+  - This ensures users can only access their own data
+  - Example: `workout_plans` table should have policy: `user_id = auth.uid()`
 - Use `SupabaseClient` type from `src/db/supabase.client.ts` (not from `@supabase/supabase-js`)
 - Use Zod schemas to validate data exchanged with backend
+- **IMPORTANT**: Never manually manage user_id in application code - always use the authenticated user from Supabase Auth
+
+## Authentication & User Context
+
+### How to Access Authenticated User
+
+In Astro routes and API endpoints:
+
+```typescript
+// src/pages/api/workout-plans.ts
+import type { APIRoute } from 'astro';
+
+export const GET: APIRoute = async ({ locals }) => {
+  // Access authenticated user
+  const user = locals.user;
+
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401
+    });
+  }
+
+  // Access authenticated Supabase client
+  const { data, error } = await locals.supabase
+    .from('workout_plans')
+    .select('*');
+    // RLS automatically filters by user_id = auth.uid()
+
+  return new Response(JSON.stringify(data), { status: 200 });
+};
+```
+
+### Row Level Security (RLS) Policies
+
+All tables must have RLS enabled with policies like:
+
+```sql
+-- Enable RLS
+ALTER TABLE workout_plans ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users can only see their own workout plans
+CREATE POLICY "Users can view their own workout plans"
+  ON workout_plans FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Policy: Users can only insert their own workout plans
+CREATE POLICY "Users can insert their own workout plans"
+  ON workout_plans FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Policy: Users can only update their own workout plans
+CREATE POLICY "Users can update their own workout plans"
+  ON workout_plans FOR UPDATE
+  USING (auth.uid() = user_id);
+
+-- Policy: Users can only delete their own workout plans
+CREATE POLICY "Users can delete their own workout plans"
+  ON workout_plans FOR DELETE
+  USING (auth.uid() = user_id);
+```
+
+### Important Rules
+
+1. **Never manually set `user_id`** - Always use `auth.uid()` in RLS policies or get it from `locals.user.id`
+2. **Always use `locals.supabase`** in Astro routes - This client is pre-configured with the user's session
+3. **Check authentication** - Always verify `locals.user` exists before processing requests
+4. **Trust RLS** - Let database policies handle data filtering, don't filter in application code
 
 ## Environment Variables
 

@@ -1,5 +1,5 @@
 ---
-description: 
+description:
 globs: src/db/*.ts,src/middleware/*.ts,src/lib/*.ts
 alwaysApply: false
 ---
@@ -8,5 +8,31 @@ alwaysApply: false
 - Use Supabase for backend services, including authentication and database interactions.
 - Follow Supabase guidelines for security and performance.
 - Use Zod schemas to validate data exchanged with the backend.
+
+### Authentication with Supabase Auth
+
+- **User Management**: All users are managed through Supabase Auth (registration, login, sessions)
+- **User ID Association**: Each authenticated user has a unique `user_id` from Supabase Auth (`auth.uid()`)
+- **Accessing User Context**:
+  - In Astro routes: `context.locals.user` (authenticated user object)
+  - In Astro routes: `context.locals.supabase` (authenticated Supabase client)
+- **CRITICAL**: Never manually set or manage `user_id` in application code - always derive from Supabase Auth
+
+### Row Level Security (RLS)
+
+- **Enable RLS** on all tables storing user data
+- **RLS Policies**: All policies must filter by `auth.uid() = user_id`
+- **Data Isolation**: RLS ensures users can only access their own data at database level
+- **Trust RLS**: Let database policies handle filtering - don't duplicate in application code
+- **Policy Pattern**:
+  ```sql
+  CREATE POLICY "policy_name" ON table_name
+    FOR SELECT USING (auth.uid() = user_id);
+  ```
+
+### Database Client Usage
+
 - Use supabase from context.locals in Astro routes instead of importing supabaseClient directly
 - Use SupabaseClient type from `src/db/supabase.client.ts`, not from `@supabase/supabase-js`
+- The client from `context.locals.supabase` is pre-authenticated with the current user's session
+- This ensures proper RLS enforcement and user context

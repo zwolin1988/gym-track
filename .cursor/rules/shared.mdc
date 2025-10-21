@@ -47,3 +47,11 @@ When modifying the directory structure, always update this section.
 - Use guard clauses to handle preconditions and invalid states early.
 - Implement proper error logging and user-friendly error messages.
 - Consider using custom error types or error factories for consistent error handling.
+
+### Authentication and User Context
+
+- **Always check authentication first**: Verify `context.locals.user` exists in Astro routes/API endpoints
+- **Use authenticated client**: Access database via `context.locals.supabase` (never import client directly)
+- **Trust Supabase Auth**: User ID comes from `auth.uid()` - never manually manage `user_id`
+- **Rely on RLS**: Database policies handle data filtering - don't duplicate in code
+- **Return 401 for unauthorized**: If `context.locals.user` is null/undefined, return 401 Unauthorized

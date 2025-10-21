@@ -6,11 +6,17 @@
 - Shadcn/ui: Zapewnia bibliotekę dostępnych komponentów React, która stanowi podstawę UI.
 
 ## Backend
-- Supabase: Kompleksowe rozwiązanie backendowe, które oferuje:
-  - Bazę danych PostgreSQL
+- **Supabase**: Kompleksowe rozwiązanie backendowe, które oferuje:
+  - Bazę danych **PostgreSQL** z Row Level Security (RLS)
+  - **Supabase Auth** - system zarządzania użytkownikami i autentykacji
+    - Rejestracja i logowanie użytkowników
+    - Zarządzanie sesjami (JWT tokens, refresh tokens)
+    - User ID (`auth.uid()`) jako klucz powiązania danych użytkownika
+  - **@supabase/ssr** - pakiet dla SSR-compatible authentication w Astro
+  - **@supabase/supabase-js** - główny SDK JavaScript/TypeScript
   - SDK w wielu językach działające jako Backend-as-a-Service
   - Możliwość hostowania lokalnie lub na własnym serwerze dzięki rozwiązaniu open source
-  - Wbudowaną autentykację użytkowników
+- **Zod**: Walidacja i parsowanie danych wejściowych w API routes
 
 ## AI
 - Openrouter.ai: Umożliwia komunikację z modelami AI, oferując dostęp do szerokiej gamy modeli (OpenAI, Anthropic, Google i wielu innych).

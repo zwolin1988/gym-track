@@ -15,6 +15,7 @@
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Environment Setup](#environment-setup)
+- [Authentication Architecture](#authentication-architecture)
 - [Available Scripts](#available-scripts)
 - [Project Scope](#project-scope)
   - [MVP Features (In Scope)](#mvp-features-in-scope)
@@ -62,11 +63,12 @@ Gym Track is a web application designed to help fitness enthusiasts systematical
 ### Backend
 
 - **[Supabase](https://supabase.com/)** - Complete backend solution providing:
-  - PostgreSQL database
-  - Built-in authentication
-  - Row Level Security (RLS)
-  - Storage and Edge Functions
-  - Backend-as-a-Service SDK
+  - **PostgreSQL database** - Robust relational database
+  - **Supabase Auth** - User authentication and management (registration, login, sessions)
+  - **Row Level Security (RLS)** - Database-level security ensuring users can only access their own data
+  - **User Association** - All actions and data are automatically linked to the authenticated user via `auth.uid()`
+  - **Storage and Edge Functions** - File storage and serverless functions
+  - **Backend-as-a-Service SDK** - Type-safe client libraries
 
 ### AI Integration
 
@@ -143,6 +145,31 @@ npm run dev
 
 The application will be available at `http://localhost:3000`
 
+## Authentication Architecture
+
+Gym Track uses **Supabase Auth** as the primary authentication system with the following architecture:
+
+### User Management
+- **Registration & Login**: All user accounts are created and managed through Supabase Auth
+- **Session Management**: Supabase handles session tokens, refresh tokens, and authentication state
+- **User Identity**: Each user receives a unique `user_id` from Supabase Auth (`auth.uid()`)
+
+### Data Association
+- **Automatic Linking**: All workout plans, workouts, and user data are automatically linked to the authenticated user
+- **User Context**: In Astro routes, access the authenticated user via `context.locals.user`
+- **Authenticated Client**: Use `context.locals.supabase` for database operations (pre-configured with user session)
+
+### Security Model
+- **Row Level Security (RLS)**: Every database table uses RLS policies
+- **Policy Example**: `workout_plans` table policy: `user_id = auth.uid()`
+- **Data Isolation**: Users can only query, insert, update, or delete their own records
+- **No Manual user_id Management**: The application never manually sets `user_id` - it's always derived from Supabase Auth
+
+### Protected Routes
+- Middleware checks authentication status
+- Unauthenticated users are redirected to login
+- API endpoints validate session tokens
+
 ## Available Scripts
 
 | Command | Description |
@@ -166,9 +193,12 @@ The project uses **Husky** and **lint-staged** to automatically run quality chec
 ### MVP Features (In Scope)
 
 ✅ **Authentication & Authorization**
-- User registration and login (Supabase Auth)
-- Row Level Security (RLS) for data protection
-- Protected routes
+- User registration and login via **Supabase Auth**
+- User sessions managed by Supabase Auth
+- All user data and actions automatically linked to authenticated user ID
+- **Row Level Security (RLS)** - Database policies ensure users only access their own data
+- Protected routes and API endpoints
+- Secure user context in `context.locals.user` (Astro) and `context.locals.supabase` (authenticated client)
 
 ✅ **Exercise Database**
 - 50+ predefined exercises
