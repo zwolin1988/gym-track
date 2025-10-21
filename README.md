@@ -188,6 +188,143 @@ The project uses **Husky** and **lint-staged** to automatically run quality chec
 - ESLint auto-fix for `.ts`, `.tsx`, `.astro` files
 - Prettier formatting for `.json`, `.css`, `.md` files
 
+## API Documentation
+
+### Exercises API
+
+The application provides RESTful API endpoints for managing exercises. All endpoints require authentication.
+
+#### Base URL
+
+```
+http://localhost:4321/api
+```
+
+#### Authentication
+
+All API requests must include a valid Supabase session cookie. The middleware automatically validates the JWT token and provides `context.locals.user` and `context.locals.supabase`.
+
+---
+
+### Endpoints
+
+#### GET /api/exercises
+
+Retrieve a paginated list of exercises with optional filtering and searching.
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `category_id` | UUID | No | - | Filter by category ID |
+| `difficulty` | string[] | No | - | Filter by difficulty (`easy`, `medium`, `hard`). Comma-separated for multiple values. |
+| `search` | string | No | - | Search exercises by name (case-insensitive) |
+| `page` | number | No | 1 | Page number for pagination |
+| `limit` | number | No | 20 | Results per page (max: 100) |
+
+**Example Request:**
+
+```bash
+curl -b "sb-access-token=YOUR_TOKEN" \
+  "http://localhost:4321/api/exercises?difficulty=medium,hard&search=bench&page=1&limit=10"
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "data": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "name": "Barbell Bench Press",
+      "description": "Lie on a flat bench...",
+      "image_path": "/storage/exercises/bench-press.jpg",
+      "image_alt": "Person performing bench press",
+      "difficulty": "medium",
+      "created_at": "2024-01-15T10:00:00Z",
+      "category": {
+        "id": "uuid",
+        "name": "Chest",
+        "slug": "chest"
+      }
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 45,
+    "total_pages": 5
+  }
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request` - Invalid query parameters
+- `401 Unauthorized` - Authentication required
+- `500 Internal Server Error` - Server error
+
+---
+
+#### GET /api/exercises/:id
+
+Retrieve a single exercise by ID with full details.
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | UUID | Yes | Exercise identifier |
+
+**Example Request:**
+
+```bash
+curl -b "sb-access-token=YOUR_TOKEN" \
+  "http://localhost:4321/api/exercises/123e4567-e89b-12d3-a456-426614174000"
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "data": {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "name": "Barbell Bench Press",
+    "description": "Lie on a flat bench and grip the barbell...",
+    "image_path": "/storage/exercises/bench-press.jpg",
+    "image_alt": "Person performing bench press",
+    "difficulty": "medium",
+    "created_at": "2024-01-15T10:00:00Z",
+    "category": {
+      "id": "uuid",
+      "name": "Chest",
+      "slug": "chest",
+      "description": "Chest muscle exercises",
+      "image_path": "/storage/categories/chest.jpg"
+    }
+  }
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request` - Invalid UUID format
+- `401 Unauthorized` - Authentication required
+- `404 Not Found` - Exercise not found
+- `500 Internal Server Error` - Server error
+
+---
+
+### Testing the API
+
+A test script is provided to verify the API functionality:
+
+```bash
+./scripts/test-exercises-api.sh
+```
+
+For detailed testing instructions, see [.ai/exercises-testing-guide.md](.ai/exercises-testing-guide.md).
+
 ## Project Scope
 
 ### MVP Features (In Scope)
@@ -267,14 +404,23 @@ The project uses **Husky** and **lint-staged** to automatically run quality chec
 - ✅ CLAUDE.md documentation
 - ✅ Tech stack selection
 - ✅ Development environment configuration
+- ✅ Database schema design (exercises, categories, workout_plans, workouts)
+- ✅ Authentication implementation (Supabase Auth + RLS)
+- ✅ Exercises API endpoints (GET /api/exercises, GET /api/exercises/:id)
+- ✅ Type system (DTOs and Command Models)
+- ✅ Validation schemas (Zod)
+- ✅ Service layer architecture
+- ✅ API documentation
 
 ### In Progress
-- 🔄 Database schema design
-- 🔄 Authentication implementation
 - 🔄 Core UI components
+- 🔄 Workout plan CRUD API
+- 🔄 Testing infrastructure
 
 ### Upcoming
-- ⏳ Workout plan CRUD
+- ⏳ Workout logger API
+- ⏳ Statistics calculation API
+- ⏳ Frontend implementation (workout plans UI)
 - ⏳ Workout logger interface
 - ⏳ Statistics and charts
 - ⏳ End-to-end testing
