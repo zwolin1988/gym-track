@@ -1,0 +1,17 @@
+---
+import AuthLayout from "@/layouts/AuthLayout.astro";
+import { LoginForm } from "@/components/auth/LoginForm";
+
+export const prerender = false;
+
+// Pobieranie parametru redirectUrl z query string
+// Użytkownik może być przekierowany z chronionej strony
+const redirectUrl = Astro.url.searchParams.get("redirect") || "/dashboard";
+---
+
+<AuthLayout title="Logowanie" description="Zaloguj się do Gym Track">
+  <div class="space-y-6">
+    <h2 class="text-center text-2xl font-bold">Logowanie</h2>
+    <LoginForm client:load redirectUrl={redirectUrl} />
+  </div>
+</AuthLayout>

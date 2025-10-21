@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Navigation from "../components/Navigation";
 import AppScrollArea from "../components/AppScrollArea";
+import { Toaster } from "@/components/ui/sonner";
 
 interface Props {
   title?: string;
@@ -9,6 +10,9 @@ interface Props {
 }
 
 const { title = "Gym Track", showNavigation = true } = Astro.props;
+
+// Get authenticated user from middleware
+const user = Astro.locals.user;
 ---
 
 <!doctype html>
@@ -30,12 +34,21 @@ const { title = "Gym Track", showNavigation = true } = Astro.props;
   <body class="font-['Space_Grotesk']">
     <AppScrollArea client:load>
       <div class="flex h-auto min-h-screen w-full flex-col">
-        {showNavigation && <Navigation client:load currentPath={Astro.url.pathname} />}
+        {
+          showNavigation && (
+            <Navigation
+              client:load
+              currentPath={Astro.url.pathname}
+              user={user && user.email ? { email: user.email, id: user.id } : null}
+            />
+          )
+        }
         <main class="flex-grow">
           <slot />
         </main>
       </div>
     </AppScrollArea>
+    <Toaster position="top-right" richColors closeButton client:load />
   </body>
 </html>
 
