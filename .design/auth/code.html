@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gym Track - Create Account</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white">
+<div class="relative flex h-auto min-h-screen w-full flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#283039] px-10 py-3 md:px-20 lg:px-40">
+<div class="flex items-center gap-4 text-white">
+<div class="size-6">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_6_330)">
+<path clip-rule="evenodd" d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" fill="currentColor" fill-rule="evenodd"></path>
+</g>
+<defs>
+<clippath id="clip0_6_330">
+<rect fill="white" height="48" width="48"></rect>
+</clippath>
+</defs>
+</svg>
+</div>
+<h2 class="text-white text-xl font-bold leading-tight tracking-[-0.015em]">Gym Track</h2>
+</div>
+</header>
+<main class="flex flex-1 justify-center py-10 px-4 sm:px-6 lg:px-8">
+<div class="w-full max-w-md space-y-8">
+<div>
+<h1 class="text-center text-4xl font-black leading-tight tracking-[-0.033em] text-white">Utwórz konto</h1>
+</div>
+<div class="rounded-xl bg-[#1A202C] p-8 shadow-lg">
+<form class="space-y-6">
+<div>
+<label class="block text-base font-medium leading-normal text-white pb-2" for="email">Email</label>
+<input autocomplete="email" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-[#2D3748] p-4 text-base font-normal leading-normal text-white placeholder:text-[#9dabb9] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary h-14" id="email" name="email" placeholder="Enter your email" required="" type="email"/>
+</div>
+<div>
+<label class="block text-base font-medium leading-normal text-white pb-2" for="password">Hasło</label>
+<div class="relative">
+<input autocomplete="new-password" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-[#2D3748] p-4 pr-12 text-base font-normal leading-normal text-white placeholder:text-[#9dabb9] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary h-14" id="password" name="password" placeholder="Enter your password" required="" type="password"/>
+<button class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#9dabb9]" type="button">
+<span class="material-symbols-outlined h-6 w-6">visibility_off</span>
+</button>
+</div>
+</div>
+<div>
+<label class="block text-base font-medium leading-normal text-white pb-2" for="confirm-password">Potwierdź hasło</label>
+<div class="relative">
+<input autocomplete="new-password" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-[#2D3748] p-4 pr-12 text-base font-normal leading-normal text-white placeholder:text-[#9dabb9] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary h-14" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required="" type="password"/>
+<button class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#9dabb9]" type="button">
+<span class="material-symbols-outlined h-6 w-6">visibility_off</span>
+</button>
+</div>
+</div>
+<div>
+<button class="flex w-full justify-center rounded-lg bg-primary px-4 py-4 text-base font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" type="submit">Zarejestruj się</button>
+</div>
+</form>
+</div>
+<p class="text-center text-sm text-[#9dabb9]">
+                    Masz już konto?
+                    <a class="font-semibold leading-6 text-primary hover:text-primary/90" href="#">Zaloguj się</a>
+</p>
+</div>
+</main>
+</div>
+</body></html>
