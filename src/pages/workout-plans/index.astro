@@ -1,0 +1,105 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+export const prerender = false;
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/auth/login");
+}
+---
+
+<Layout title="Workout Plans - Gym Track">
+  <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <!-- Header with Action Button -->
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Plany treningowe</h1>
+        <p class="mt-2 text-muted-foreground">Zarządzaj swoimi planami treningowymi</p>
+      </div>
+      <a
+        href="/workout-plans/new"
+        class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
+      >
+        <span class="material-symbols-outlined text-base">add</span>
+        Nowy plan
+      </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="mb-6 grid gap-4 sm:grid-cols-3">
+      <!-- Search -->
+      <div class="sm:col-span-2">
+        <label for="search" class="sr-only">Szukaj</label>
+        <input
+          type="text"
+          id="search"
+          placeholder="Szukaj planu..."
+          class="w-full rounded-lg border bg-background px-4 py-2"
+        />
+      </div>
+
+      <!-- Status Filter -->
+      <div>
+        <label for="status" class="sr-only">Status</label>
+        <select id="status" class="w-full rounded-lg border bg-background px-4 py-2">
+          <option value="">Wszystkie statusy</option>
+          <option value="active">Aktywne</option>
+          <option value="archived">Zarchiwizowane</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Plans Grid -->
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <!-- Plan Card Template -->
+      <a
+        href="/workout-plans/[id]"
+        class="group overflow-hidden rounded-lg border bg-card shadow-sm transition-all hover:border-primary hover:shadow-md"
+      >
+        <div class="p-6">
+          <div class="mb-4 flex items-start justify-between">
+            <div>
+              <h3 class="mb-1 text-lg font-semibold group-hover:text-primary">Plan Name</h3>
+              <p class="text-sm text-muted-foreground">X ćwiczeń • Y sesji</p>
+            </div>
+            <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+              Aktywny
+            </span>
+          </div>
+          <p class="mb-4 text-sm text-muted-foreground line-clamp-2">
+            Plan description will be loaded here...
+          </p>
+          <div class="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Utworzono: DD/MM/YYYY</span>
+            <button
+              class="inline-flex items-center gap-1 hover:text-foreground"
+              onclick="event.preventDefault(); event.stopPropagation();"
+            >
+              <span class="material-symbols-outlined text-base">more_vert</span>
+            </button>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Empty State -->
+    <div class="rounded-lg border bg-card p-12 text-center shadow-sm hidden" id="empty-state">
+      <span class="material-symbols-outlined mb-4 text-6xl text-muted-foreground">list_alt</span>
+      <h3 class="mb-2 text-lg font-semibold">Brak planów treningowych</h3>
+      <p class="mb-6 text-sm text-muted-foreground">Stwórz swój pierwszy plan treningowy</p>
+      <a
+        href="/workout-plans/new"
+        class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+      >
+        <span class="material-symbols-outlined text-base">add</span>
+        Nowy plan treningowy
+      </a>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  console.log("Workout plans page loaded");
+</script>

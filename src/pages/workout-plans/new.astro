@@ -1,0 +1,118 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+export const prerender = false;
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/auth/login");
+}
+---
+
+<Layout title="Create Workout Plan - Gym Track">
+  <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <!-- Back Button -->
+    <a href="/workout-plans" class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+      <span class="material-symbols-outlined text-base">arrow_back</span>
+      Powrót do planów
+    </a>
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Nowy plan treningowy</h1>
+      <p class="mt-2 text-muted-foreground">Stwórz spersonalizowany plan treningowy</p>
+    </div>
+
+    <!-- Form -->
+    <div class="mx-auto max-w-2xl">
+      <form id="create-plan-form" class="space-y-6">
+        <!-- Plan Name -->
+        <div>
+          <label for="name" class="mb-2 block text-sm font-medium">
+            Nazwa planu <span class="text-destructive">*</span>
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            required
+            placeholder="np. Plan na masę 3x w tygodniu"
+            class="w-full rounded-lg border bg-background px-4 py-2"
+          />
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label for="description" class="mb-2 block text-sm font-medium">
+            Opis <span class="text-muted-foreground">(opcjonalnie)</span>
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            rows="4"
+            placeholder="Opisz cel i charakter planu treningowego..."
+            class="w-full rounded-lg border bg-background px-4 py-2"
+          ></textarea>
+        </div>
+
+        <!-- Exercises Section -->
+        <div>
+          <div class="mb-4 flex items-center justify-between">
+            <h2 class="text-lg font-semibold">Ćwiczenia w planie</h2>
+            <button
+              type="button"
+              id="add-exercise-btn"
+              class="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
+            >
+              <span class="material-symbols-outlined text-base">add</span>
+              Dodaj ćwiczenie
+            </button>
+          </div>
+
+          <!-- Exercise List Container -->
+          <div id="exercises-list" class="space-y-4">
+            <!-- Exercises will be added here dynamically -->
+            <div class="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
+              <span class="material-symbols-outlined mb-2 text-4xl text-muted-foreground">exercise</span>
+              <p class="text-sm text-muted-foreground">Dodaj ćwiczenia do swojego planu</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4 border-t pt-6">
+          <button
+            type="submit"
+            class="flex-1 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Zapisz plan
+          </button>
+          <a
+            href="/workout-plans"
+            class="inline-flex items-center justify-center rounded-lg border bg-background px-6 py-3 font-medium hover:bg-muted"
+          >
+            Anuluj
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  console.log("Create workout plan page loaded");
+
+  // Add exercise button handler
+  document.getElementById("add-exercise-btn")?.addEventListener("click", () => {
+    console.log("Add exercise clicked");
+    // Will be implemented with exercise selection modal
+  });
+
+  // Form submission handler
+  document.getElementById("create-plan-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    console.log("Form submitted");
+    // Will be implemented with API call
+  });
+</script>
