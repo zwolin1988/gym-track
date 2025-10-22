@@ -1,0 +1,52 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+export const prerender = false;
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/auth/login");
+}
+---
+
+<Layout title="Categories - Gym Track">
+  <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Kategorie ćwiczeń</h1>
+      <p class="mt-2 text-muted-foreground">Przeglądaj ćwiczenia według partii mięśniowych</p>
+    </div>
+
+    <!-- Categories Grid -->
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <!-- Category Card Template - will be populated dynamically -->
+      <a
+        href="/categories/[id]"
+        class="group overflow-hidden rounded-lg border bg-card shadow-sm transition-all hover:border-primary hover:shadow-md"
+      >
+        <div class="aspect-video w-full bg-muted"></div>
+        <div class="p-6">
+          <h3 class="mb-2 text-lg font-semibold group-hover:text-primary">Category Name</h3>
+          <p class="mb-2 text-sm text-muted-foreground line-clamp-2">
+            Category description...
+          </p>
+          <p class="text-sm font-medium text-primary">
+            X ćwiczeń
+          </p>
+        </div>
+      </a>
+    </div>
+
+    <!-- Empty State -->
+    <div class="rounded-lg border bg-card p-12 text-center shadow-sm hidden" id="empty-state">
+      <span class="material-symbols-outlined mb-4 text-6xl text-muted-foreground">category</span>
+      <h3 class="mb-2 text-lg font-semibold">Brak kategorii</h3>
+      <p class="text-sm text-muted-foreground">Kategorie zostaną wczytane wkrótce</p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  console.log("Categories page loaded");
+</script>

@@ -24,12 +24,18 @@ export default function Navigation({ currentPath = "/", user }: NavigationProps)
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
-    { href: "/plans", label: "Plany", icon: "list_alt" },
-    { href: "/workouts", label: "Treningi", icon: "fitness_center" },
+    { href: "/workout-plans", label: "Plany", icon: "list_alt" },
+    { href: "/workouts/history", label: "Treningi", icon: "fitness_center" },
     { href: "/exercises", label: "Ćwiczenia", icon: "exercise" },
+    { href: "/categories", label: "Kategorie", icon: "category" },
   ];
 
-  const isActive = (href: string) => currentPath === href;
+  const isActive = (href: string) => {
+    // Exact match for dashboard
+    if (href === "/dashboard") return currentPath === href;
+    // For other routes, match if current path starts with the href
+    return currentPath?.startsWith(href);
+  };
 
   // Get user initials for avatar fallback
   const getUserInitials = (email: string) => {
@@ -71,10 +77,37 @@ export default function Navigation({ currentPath = "/", user }: NavigationProps)
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-3">
-          {/* Quick Add Button */}
-          <Button variant="secondary" size="icon" aria-label="Dodaj nowy" className="hidden md:flex">
-            <span className="material-symbols-outlined">add</span>
-          </Button>
+          {/* Quick Add Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="secondary" size="icon" aria-label="Dodaj nowy" className="hidden md:flex">
+                <span className="material-symbols-outlined">add</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Szybkie akcje</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <a href="/workouts/start" className="flex items-center gap-2 cursor-pointer">
+                  <span className="material-symbols-outlined text-base">play_arrow</span>
+                  Rozpocznij trening
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href="/workout-plans/new" className="flex items-center gap-2 cursor-pointer">
+                  <span className="material-symbols-outlined text-base">list_alt</span>
+                  Nowy plan treningowy
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <a href="/workouts/stats" className="flex items-center gap-2 cursor-pointer">
+                  <span className="material-symbols-outlined text-base">insights</span>
+                  Zobacz statystyki
+                </a>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* User Avatar Dropdown */}
           {user && (

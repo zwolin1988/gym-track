@@ -1,0 +1,174 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+export const prerender = false;
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/auth/login");
+}
+
+const { id } = Astro.params;
+---
+
+<Layout title="Edit Workout Plan - Gym Track">
+  <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <!-- Back Button -->
+    <a href={`/workout-plans/${id}`} class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+      <span class="material-symbols-outlined text-base">arrow_back</span>
+      Powrót do planu
+    </a>
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Edytuj plan treningowy</h1>
+      <p class="mt-2 text-muted-foreground">Zmodyfikuj szczegóły swojego planu</p>
+    </div>
+
+    <!-- Form -->
+    <div class="mx-auto max-w-2xl">
+      <form id="edit-plan-form" class="space-y-6">
+        <!-- Plan Name -->
+        <div>
+          <label for="name" class="mb-2 block text-sm font-medium">
+            Nazwa planu <span class="text-destructive">*</span>
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            required
+            placeholder="np. Plan na masę 3x w tygodniu"
+            value="Plan Name"
+            class="w-full rounded-lg border bg-background px-4 py-2"
+          />
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label for="description" class="mb-2 block text-sm font-medium">
+            Opis <span class="text-muted-foreground">(opcjonalnie)</span>
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            rows="4"
+            placeholder="Opisz cel i charakter planu treningowego..."
+            class="w-full rounded-lg border bg-background px-4 py-2"
+          >Plan description will be loaded here...</textarea>
+        </div>
+
+        <!-- Status -->
+        <div>
+          <label for="status" class="mb-2 block text-sm font-medium">Status</label>
+          <select id="status" name="status" class="w-full rounded-lg border bg-background px-4 py-2">
+            <option value="active">Aktywny</option>
+            <option value="archived">Zarchiwizowany</option>
+          </select>
+        </div>
+
+        <!-- Exercises Section -->
+        <div>
+          <div class="mb-4 flex items-center justify-between">
+            <h2 class="text-lg font-semibold">Ćwiczenia w planie</h2>
+            <button
+              type="button"
+              id="add-exercise-btn"
+              class="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
+            >
+              <span class="material-symbols-outlined text-base">add</span>
+              Dodaj ćwiczenie
+            </button>
+          </div>
+
+          <!-- Exercise List Container -->
+          <div id="exercises-list" class="space-y-3">
+            <!-- Exercise Item Template -->
+            <div class="rounded-lg border bg-card p-4">
+              <div class="flex items-start gap-4">
+                <button type="button" class="cursor-grab hover:cursor-grabbing">
+                  <span class="material-symbols-outlined text-muted-foreground">drag_indicator</span>
+                </button>
+                <div class="flex-1">
+                  <div class="mb-2 flex items-center justify-between">
+                    <h3 class="font-semibold">Exercise Name</h3>
+                    <button
+                      type="button"
+                      class="text-destructive hover:text-destructive/80"
+                      onclick="console.log('Remove exercise')"
+                    >
+                      <span class="material-symbols-outlined text-base">close</span>
+                    </button>
+                  </div>
+                  <div class="grid gap-3 sm:grid-cols-3">
+                    <div>
+                      <label class="mb-1 block text-xs text-muted-foreground">Serie</label>
+                      <input
+                        type="number"
+                        value="3"
+                        min="1"
+                        class="w-full rounded border bg-background px-3 py-1 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label class="mb-1 block text-xs text-muted-foreground">Powtórzenia</label>
+                      <input
+                        type="text"
+                        value="10-12"
+                        placeholder="np. 10-12"
+                        class="w-full rounded border bg-background px-3 py-1 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label class="mb-1 block text-xs text-muted-foreground">Odpoczynek (s)</label>
+                      <input
+                        type="number"
+                        value="90"
+                        min="0"
+                        class="w-full rounded border bg-background px-3 py-1 text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4 border-t pt-6">
+          <button
+            type="submit"
+            class="flex-1 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Zapisz zmiany
+          </button>
+          <a
+            href={`/workout-plans/${id}`}
+            class="inline-flex items-center justify-center rounded-lg border bg-background px-6 py-3 font-medium hover:bg-muted"
+          >
+            Anuluj
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</Layout>
+
+<script define:vars={{ planId: id }}>
+  console.log("Edit workout plan page loaded, ID:", planId);
+
+  // Add exercise button handler
+  document.getElementById("add-exercise-btn")?.addEventListener("click", () => {
+    console.log("Add exercise clicked");
+    // Will be implemented with exercise selection modal
+  });
+
+  // Form submission handler
+  document.getElementById("edit-plan-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    console.log("Form submitted");
+    // Will be implemented with API call
+  });
+</script>

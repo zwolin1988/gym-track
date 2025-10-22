@@ -1,0 +1,91 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+export const prerender = false;
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/auth/login");
+}
+
+const { id } = Astro.params;
+---
+
+<Layout title="Exercise Details - Gym Track">
+  <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <!-- Back Button -->
+    <a href="/exercises" class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+      <span class="material-symbols-outlined text-base">arrow_back</span>
+      Powrót do ćwiczeń
+    </a>
+
+    <!-- Exercise Details -->
+    <div class="grid gap-8 lg:grid-cols-2">
+      <!-- Image Section -->
+      <div>
+        <div class="aspect-square w-full overflow-hidden rounded-lg bg-muted">
+          <!-- Exercise image will be loaded here -->
+          <div class="flex h-full items-center justify-center">
+            <span class="material-symbols-outlined text-6xl text-muted-foreground">exercise</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Section -->
+      <div>
+        <div class="mb-4">
+          <h1 class="text-3xl font-bold tracking-tight">Exercise Name</h1>
+          <p class="mt-2 text-sm text-muted-foreground">Category • Difficulty</p>
+        </div>
+
+        <!-- Meta Info -->
+        <div class="mb-6 flex gap-4">
+          <div class="rounded-lg border bg-card px-4 py-2">
+            <p class="text-xs text-muted-foreground">Category</p>
+            <p class="font-semibold">Chest</p>
+          </div>
+          <div class="rounded-lg border bg-card px-4 py-2">
+            <p class="text-xs text-muted-foreground">Difficulty</p>
+            <p class="font-semibold">Medium</p>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-6">
+          <h2 class="mb-2 text-lg font-semibold">Opis</h2>
+          <p class="text-muted-foreground">
+            Exercise description will be loaded here...
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4">
+          <button class="flex-1 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90">
+            Dodaj do planu
+          </button>
+          <a
+            href="/categories"
+            class="inline-flex items-center gap-2 rounded-lg border bg-background px-6 py-3 font-medium hover:bg-muted"
+          >
+            Zobacz kategorię
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Info Section -->
+    <div class="mt-12">
+      <h2 class="mb-4 text-2xl font-bold">Jak wykonać</h2>
+      <div class="rounded-lg border bg-card p-6">
+        <p class="text-muted-foreground">
+          Szczegółowe instrukcje wykonania ćwiczenia będą dostępne tutaj.
+        </p>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script define:vars={{ exerciseId: id }}>
+  console.log("Exercise detail page loaded, ID:", exerciseId);
+</script>
