@@ -15,7 +15,10 @@ const { id } = Astro.params;
 <Layout title="Exercise Details - Gym Track">
   <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
     <!-- Back Button -->
-    <a href="/exercises" class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+    <a
+      href="/exercises"
+      class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+    >
       <span class="material-symbols-outlined text-base">arrow_back</span>
       Powrót do ćwiczeń
     </a>
@@ -54,14 +57,14 @@ const { id } = Astro.params;
         <!-- Description -->
         <div class="mb-6">
           <h2 class="mb-2 text-lg font-semibold">Opis</h2>
-          <p class="text-muted-foreground">
-            Exercise description will be loaded here...
-          </p>
+          <p class="text-muted-foreground">Exercise description will be loaded here...</p>
         </div>
 
         <!-- Action Buttons -->
         <div class="flex gap-4">
-          <button class="flex-1 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90">
+          <button
+            class="flex-1 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
+          >
             Dodaj do planu
           </button>
           <a
@@ -78,9 +81,7 @@ const { id } = Astro.params;
     <div class="mt-12">
       <h2 class="mb-4 text-2xl font-bold">Jak wykonać</h2>
       <div class="rounded-lg border bg-card p-6">
-        <p class="text-muted-foreground">
-          Szczegółowe instrukcje wykonania ćwiczenia będą dostępne tutaj.
-        </p>
+        <p class="text-muted-foreground">Szczegółowe instrukcje wykonania ćwiczenia będą dostępne tutaj.</p>
       </div>
     </div>
   </div>

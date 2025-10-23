@@ -15,7 +15,10 @@ const { id } = Astro.params;
 <Layout title="Workout Plan Details - Gym Track">
   <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
     <!-- Back Button -->
-    <a href="/workout-plans" class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+    <a
+      href="/workout-plans"
+      class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+    >
       <span class="material-symbols-outlined text-base">arrow_back</span>
       Powrót do planów
     </a>
@@ -25,9 +28,7 @@ const { id } = Astro.params;
       <div>
         <div class="mb-2 flex items-center gap-3">
           <h1 class="text-3xl font-bold tracking-tight">Plan Name</h1>
-          <span class="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-            Aktywny
-          </span>
+          <span class="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"> Aktywny </span>
         </div>
         <p class="text-muted-foreground">Plan description will be loaded here</p>
         <p class="mt-2 text-sm text-muted-foreground">Utworzono: DD/MM/YYYY</p>
@@ -84,8 +85,12 @@ const { id } = Astro.params;
               <p class="mb-2 text-sm text-muted-foreground">Category • Difficulty</p>
               <div class="flex gap-4 text-sm">
                 <span class="text-muted-foreground">Serie: <span class="font-medium text-foreground">3</span></span>
-                <span class="text-muted-foreground">Powtórzenia: <span class="font-medium text-foreground">10-12</span></span>
-                <span class="text-muted-foreground">Odpoczynek: <span class="font-medium text-foreground">90s</span></span>
+                <span class="text-muted-foreground"
+                  >Powtórzenia: <span class="font-medium text-foreground">10-12</span></span
+                >
+                <span class="text-muted-foreground"
+                  >Odpoczynek: <span class="font-medium text-foreground">90s</span></span
+                >
               </div>
             </div>
           </div>
