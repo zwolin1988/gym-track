@@ -23,19 +23,11 @@ if (!user) {
       <!-- Date Range -->
       <div>
         <label for="start-date" class="sr-only">Data od</label>
-        <input
-          type="date"
-          id="start-date"
-          class="w-full rounded-lg border bg-background px-4 py-2 text-sm"
-        />
+        <input type="date" id="start-date" class="w-full rounded-lg border bg-background px-4 py-2 text-sm" />
       </div>
       <div>
         <label for="end-date" class="sr-only">Data do</label>
-        <input
-          type="date"
-          id="end-date"
-          class="w-full rounded-lg border bg-background px-4 py-2 text-sm"
-        />
+        <input type="date" id="end-date" class="w-full rounded-lg border bg-background px-4 py-2 text-sm" />
       </div>
 
       <!-- Plan Filter -->
@@ -69,9 +61,7 @@ if (!user) {
           <div class="flex-1">
             <div class="mb-2 flex items-center gap-2">
               <h3 class="text-lg font-semibold group-hover:text-primary">Plan Name</h3>
-              <span class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                Ukończony
-              </span>
+              <span class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"> Ukończony </span>
             </div>
             <div class="mb-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
               <span class="flex items-center gap-1">
@@ -102,9 +92,7 @@ if (!user) {
               </div>
             </div>
           </div>
-          <span class="material-symbols-outlined text-muted-foreground group-hover:text-primary">
-            chevron_right
-          </span>
+          <span class="material-symbols-outlined text-muted-foreground group-hover:text-primary"> chevron_right </span>
         </div>
       </a>
     </div>
@@ -113,9 +101,7 @@ if (!user) {
     <div class="rounded-lg border bg-card p-12 text-center shadow-sm hidden" id="empty-state">
       <span class="material-symbols-outlined mb-4 text-6xl text-muted-foreground">history</span>
       <h3 class="mb-2 text-lg font-semibold">Brak treningów</h3>
-      <p class="mb-6 text-sm text-muted-foreground">
-        Ukończ swój pierwszy trening, aby zobaczyć go tutaj
-      </p>
+      <p class="mb-6 text-sm text-muted-foreground">Ukończ swój pierwszy trening, aby zobaczyć go tutaj</p>
       <a
         href="/workouts/start"
         class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
@@ -132,21 +118,15 @@ if (!user) {
         <span class="font-medium">50</span> workouts
       </p>
       <div class="flex gap-2">
-        <button
-          class="rounded-lg border bg-background px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
-          disabled
-        >
+        <button class="rounded-lg border bg-background px-4 py-2 text-sm hover:bg-muted disabled:opacity-50" disabled>
           Previous
         </button>
-        <button class="rounded-lg border bg-background px-4 py-2 text-sm hover:bg-muted">
-          Next
-        </button>
+        <button class="rounded-lg border bg-background px-4 py-2 text-sm hover:bg-muted"> Next </button>
       </div>
     </div>
   </div>
 </Layout>
 
 <script>
-  console.log("Workout history page loaded");
-  // Will load workouts from API with filters
+  console.log("Workout history page loaded"); // Will load workouts from API with filters
 </script>

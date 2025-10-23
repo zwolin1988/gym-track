@@ -21,30 +21,12 @@ if (!user) {
     <!-- Time Period Filter -->
     <div class="mb-6">
       <div class="inline-flex rounded-lg border bg-card p-1">
-        <button
-          class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-          data-period="week"
-        >
+        <button class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground" data-period="week">
           Tydzień
         </button>
-        <button
-          class="rounded-md px-4 py-2 text-sm font-medium hover:bg-muted"
-          data-period="month"
-        >
-          Miesiąc
-        </button>
-        <button
-          class="rounded-md px-4 py-2 text-sm font-medium hover:bg-muted"
-          data-period="year"
-        >
-          Rok
-        </button>
-        <button
-          class="rounded-md px-4 py-2 text-sm font-medium hover:bg-muted"
-          data-period="all"
-        >
-          Wszystko
-        </button>
+        <button class="rounded-md px-4 py-2 text-sm font-medium hover:bg-muted" data-period="month"> Miesiąc </button>
+        <button class="rounded-md px-4 py-2 text-sm font-medium hover:bg-muted" data-period="year"> Rok </button>
+        <button class="rounded-md px-4 py-2 text-sm font-medium hover:bg-muted" data-period="all"> Wszystko </button>
       </div>
     </div>
 
@@ -164,9 +146,7 @@ if (!user) {
     <div class="rounded-lg border bg-card p-12 text-center shadow-sm hidden" id="no-data">
       <span class="material-symbols-outlined mb-4 text-6xl text-muted-foreground">insights</span>
       <h3 class="mb-2 text-lg font-semibold">Brak danych</h3>
-      <p class="mb-6 text-sm text-muted-foreground">
-        Ukończ treningi, aby zobaczyć statystyki
-      </p>
+      <p class="mb-6 text-sm text-muted-foreground">Ukończ treningi, aby zobaczyć statystyki</p>
       <a
         href="/workouts/start"
         class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"

@@ -15,7 +15,10 @@ const { id } = Astro.params;
 <Layout title="Category - Gym Track">
   <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
     <!-- Back Button -->
-    <a href="/categories" class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+    <a
+      href="/categories"
+      class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+    >
       <span class="material-symbols-outlined text-base">arrow_back</span>
       Powrót do kategorii
     </a>
@@ -43,9 +46,7 @@ const { id } = Astro.params;
         <div class="p-6">
           <h3 class="mb-2 text-lg font-semibold group-hover:text-primary">Exercise Name</h3>
           <p class="mb-2 text-sm text-muted-foreground">Difficulty</p>
-          <p class="text-sm text-muted-foreground line-clamp-2">
-            Description...
-          </p>
+          <p class="text-sm text-muted-foreground line-clamp-2">Description...</p>
         </div>
       </a>
     </div>

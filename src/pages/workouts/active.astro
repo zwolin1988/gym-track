@@ -48,11 +48,7 @@ if (!user) {
             <h3 class="mb-1 text-lg font-semibold">Exercise Name</h3>
             <p class="text-sm text-muted-foreground">Category • X serie</p>
           </div>
-          <a
-            href="/exercises/[id]"
-            class="text-primary hover:text-primary/80"
-            target="_blank"
-          >
+          <a href="/exercises/[id]" class="text-primary hover:text-primary/80" target="_blank">
             <span class="material-symbols-outlined">info</span>
           </a>
         </div>
@@ -120,10 +116,7 @@ if (!user) {
       >
         Zakończ trening
       </button>
-      <button
-        id="cancel-workout-btn"
-        class="rounded-lg border bg-background px-6 py-3 font-medium hover:bg-muted"
-      >
+      <button id="cancel-workout-btn" class="rounded-lg border bg-background px-6 py-3 font-medium hover:bg-muted">
         Anuluj
       </button>
     </div>
@@ -148,7 +141,7 @@ if (!user) {
   console.log("Active workout page loaded");
 
   // Timer logic
-  let startTime = Date.now(); // Will be loaded from API
+  const startTime = Date.now(); // Will be loaded from API
   const timerElement = document.getElementById("workout-timer");
 
   function updateTimer() {
