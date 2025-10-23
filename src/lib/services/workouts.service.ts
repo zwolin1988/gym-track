@@ -54,7 +54,7 @@ export class WorkoutsService {
       .select(
         `
         *,
-        workout_plans!inner(name),
+        workout_plans(name),
         workout_stats(*)
       `,
         { count: "exact" }
@@ -93,24 +93,29 @@ export class WorkoutsService {
     }
 
     // Transform to DTOs
-    const workouts: WorkoutListItemDTO[] = (data || []).map((workout) => ({
-      id: workout.id,
-      plan_id: workout.plan_id,
-      plan_name: workout.workout_plans.name,
-      status: workout.status,
-      started_at: workout.started_at,
-      completed_at: workout.completed_at,
-      stats: workout.workout_stats[0]
-        ? {
-            duration_minutes: workout.workout_stats[0].duration_minutes,
-            total_exercises: workout.workout_stats[0].total_exercises,
-            total_sets: workout.workout_stats[0].total_sets,
-            total_reps: workout.workout_stats[0].total_reps,
-            max_weight: workout.workout_stats[0].max_weight,
-            total_volume: workout.workout_stats[0].total_volume,
-          }
-        : undefined,
-    }));
+    const workouts: WorkoutListItemDTO[] = (data || []).map((workout) => {
+      // Handle both array and single object from Supabase
+      const stats = Array.isArray(workout.workout_stats) ? workout.workout_stats[0] : workout.workout_stats;
+
+      return {
+        id: workout.id,
+        plan_id: workout.plan_id,
+        plan_name: workout.workout_plans?.name || "Unknown Plan",
+        status: workout.status,
+        started_at: workout.started_at,
+        completed_at: workout.completed_at,
+        stats: stats
+          ? {
+              duration_minutes: stats.duration_minutes ?? 0,
+              total_exercises: stats.total_exercises ?? 0,
+              total_sets: stats.total_sets ?? 0,
+              total_reps: stats.total_reps ?? 0,
+              max_weight: stats.max_weight ?? 0,
+              total_volume: stats.total_volume ?? 0,
+            }
+          : undefined,
+      };
+    });
 
     const total = count || 0;
     const total_pages = Math.ceil(total / pagination.limit);
@@ -137,7 +142,7 @@ export class WorkoutsService {
       .select(
         `
         *,
-        workout_plans!inner(name)
+        workout_plans(name)
       `
       )
       .eq("user_id", userId)
@@ -206,7 +211,7 @@ export class WorkoutsService {
     return {
       id: workout.id,
       plan_id: workout.plan_id,
-      plan_name: workout.workout_plans.name,
+      plan_name: workout.workout_plans?.name || "Unknown Plan",
       status: workout.status,
       started_at: workout.started_at,
       completed_at: workout.completed_at,
@@ -223,7 +228,7 @@ export class WorkoutsService {
       .select(
         `
         *,
-        workout_plans!inner(name),
+        workout_plans(name),
         workout_stats(*)
       `
       )
@@ -290,21 +295,24 @@ export class WorkoutsService {
       })
     );
 
+    // Handle both array and single object from Supabase
+    const stats = Array.isArray(workout.workout_stats) ? workout.workout_stats[0] : workout.workout_stats;
+
     return {
       id: workout.id,
       plan_id: workout.plan_id,
-      plan_name: workout.workout_plans.name,
+      plan_name: workout.workout_plans?.name || "Unknown Plan",
       status: workout.status,
       started_at: workout.started_at,
       completed_at: workout.completed_at,
-      stats: workout.workout_stats[0]
+      stats: stats
         ? {
-            duration_minutes: workout.workout_stats[0].duration_minutes,
-            total_exercises: workout.workout_stats[0].total_exercises,
-            total_sets: workout.workout_stats[0].total_sets,
-            total_reps: workout.workout_stats[0].total_reps,
-            max_weight: workout.workout_stats[0].max_weight,
-            total_volume: workout.workout_stats[0].total_volume,
+            duration_minutes: stats.duration_minutes ?? 0,
+            total_exercises: stats.total_exercises ?? 0,
+            total_sets: stats.total_sets ?? 0,
+            total_reps: stats.total_reps ?? 0,
+            max_weight: stats.max_weight ?? 0,
+            total_volume: stats.total_volume ?? 0,
           }
         : undefined,
       exercises: exercisesWithSets,
@@ -662,8 +670,8 @@ export class WorkoutsService {
         `
         id,
         started_at,
-        workout_plans!inner(name),
-        workout_stats!inner(*)
+        workout_plans(name),
+        workout_stats(*)
       `
       )
       .eq("user_id", userId)
@@ -683,15 +691,20 @@ export class WorkoutsService {
     }
 
     // Transform to DTOs
-    const workouts = (data || []).map((workout) => ({
-      id: workout.id,
-      date: workout.started_at.split("T")[0],
-      plan_name: workout.workout_plans.name,
-      duration_minutes: workout.workout_stats[0]?.duration_minutes || 0,
-      total_volume: workout.workout_stats[0]?.total_volume || 0,
-      total_sets: workout.workout_stats[0]?.total_sets || 0,
-      total_reps: workout.workout_stats[0]?.total_reps || 0,
-    }));
+    const workouts = (data || []).map((workout) => {
+      // Handle both array and single object from Supabase
+      const stats = Array.isArray(workout.workout_stats) ? workout.workout_stats[0] : workout.workout_stats;
+
+      return {
+        id: workout.id,
+        date: workout.started_at.split("T")[0],
+        plan_name: workout.workout_plans?.name || "Unknown Plan",
+        duration_minutes: stats?.duration_minutes || 0,
+        total_volume: stats?.total_volume || 0,
+        total_sets: stats?.total_sets || 0,
+        total_reps: stats?.total_reps || 0,
+      };
+    });
 
     // Calculate summary
     const summary = {

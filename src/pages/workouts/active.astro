@@ -136,37 +136,3 @@ if (!user) {
     </div>
   </div>
 </Layout>
-
-<script>
-  console.log("Active workout page loaded");
-
-  // Timer logic
-  const startTime = Date.now(); // Will be loaded from API
-  const timerElement = document.getElementById("workout-timer");
-
-  function updateTimer() {
-    const elapsed = Date.now() - startTime;
-    const hours = Math.floor(elapsed / 3600000);
-    const minutes = Math.floor((elapsed % 3600000) / 60000);
-    const seconds = Math.floor((elapsed % 60000) / 1000);
-
-    if (timerElement) {
-      timerElement.textContent = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-    }
-  }
-
-  setInterval(updateTimer, 1000);
-  updateTimer();
-
-  // Complete workout handler
-  document.getElementById("complete-workout-btn")?.addEventListener("click", () => {
-    console.log("Complete workout clicked");
-    // Will show confirmation and call API
-  });
-
-  // Cancel workout handler
-  document.getElementById("cancel-workout-btn")?.addEventListener("click", () => {
-    console.log("Cancel workout clicked");
-    // Will show confirmation and call API
-  });
-</script>

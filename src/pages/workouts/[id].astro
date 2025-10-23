@@ -154,13 +154,3 @@ const { id } = Astro.params;
     </div>
   </div>
 </Layout>
-
-<script define:vars={{ workoutId: id }}>
-  console.log("Workout detail page loaded, ID:", workoutId);
-
-  // Repeat workout button handler
-  document.getElementById("repeat-workout-btn")?.addEventListener("click", () => {
-    console.log("Repeat workout clicked");
-    // Will create new workout with same plan
-  });
-</script>

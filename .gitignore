@@ -22,4 +22,4 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
-db-mocks/
+db-mocks/99999999999999_seed_test_data.sql
