@@ -16,7 +16,7 @@ export function CategoryCard({ category, exerciseCount }: CategoryCardProps) {
     return null;
   }
 
-  // Skrócenie opisu do 100 znaków
+  // Skrï¿½cenie opisu do 100 znakï¿½w
   const truncatedDescription = category.description
     ? category.description.length > 100
       ? `${category.description.substring(0, 100)}...`
@@ -51,17 +51,13 @@ export function CategoryCard({ category, exerciseCount }: CategoryCardProps) {
         <h3 className="mb-2 text-xl font-bold">{category.name}</h3>
 
         {truncatedDescription && (
-          <p className="mb-3 text-sm text-muted-foreground line-clamp-2">
-            {truncatedDescription}
-          </p>
+          <p className="mb-3 text-sm text-muted-foreground line-clamp-2">{truncatedDescription}</p>
         )}
 
         {/* Badge z liczb wiczeD */}
         <div className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-sm">
           <span className="font-semibold">{exerciseCount}</span>
-          <span className="ml-1">
-            {exerciseCount === 1 ? "wiczenie" : "wiczeD"}
-          </span>
+          <span className="ml-1">{exerciseCount === 1 ? "wiczenie" : "wiczeD"}</span>
         </div>
       </div>
     </a>

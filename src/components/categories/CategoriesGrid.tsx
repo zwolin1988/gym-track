@@ -16,8 +16,7 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
         <SearchX className="mb-4 h-16 w-16 text-muted-foreground" />
         <h3 className="mb-2 text-lg font-semibold">Brak kategorii</h3>
         <p className="max-w-md text-muted-foreground">
-          Nie znaleziono |adnych kategorii wiczeD. Skontaktuj si z
-          administratorem.
+          Nie znaleziono |adnych kategorii wiczeD. Skontaktuj si z administratorem.
         </p>
       </div>
     );
@@ -26,11 +25,7 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {categories.map(({ category, exerciseCount }) => (
-        <CategoryCard
-          key={category.id}
-          category={category}
-          exerciseCount={exerciseCount}
-        />
+        <CategoryCard key={category.id} category={category} exerciseCount={exerciseCount} />
       ))}
     </div>
   );

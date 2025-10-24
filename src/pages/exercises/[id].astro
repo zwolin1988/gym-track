@@ -1,8 +1,11 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { ArrowLeft, Dumbbell } from "lucide-react";
+import type { ExerciseDetailDTO } from "@/types";
 
 export const prerender = false;
 
+// Sprawdź autoryzację
 const user = Astro.locals.user;
 
 if (!user) {
@@ -10,16 +13,47 @@ if (!user) {
 }
 
 const { id } = Astro.params;
+
+// Walidacja ID
+if (!id) {
+  return Astro.redirect("/exercises");
+}
+
+// Pobierz dane ćwiczenia
+const exerciseResponse = await fetch(`${Astro.url.origin}/api/exercises/${id}`, {
+  headers: {
+    Cookie: Astro.request.headers.get("Cookie") || "",
+  },
+});
+
+// Obsługa błędu lub brak ćwiczenia
+if (!exerciseResponse.ok) {
+  // eslint-disable-next-line no-console
+  console.error("Error fetching exercise:", exerciseResponse.statusText);
+  if (exerciseResponse.status === 404) {
+    return Astro.redirect("/exercises");
+  }
+  return Astro.redirect("/error?message=" + encodeURIComponent("Nie udało się załadować ćwiczenia"));
+}
+
+const exerciseResult = await exerciseResponse.json();
+const exercise: ExerciseDetailDTO = exerciseResult.data;
+
+const DIFFICULTY_LABELS = {
+  easy: "Łatwy",
+  medium: "Średni",
+  hard: "Trudny",
+};
 ---
 
-<Layout title="Exercise Details - Gym Track">
-  <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+<Layout title={`${exercise.name} - Gym Track`}>
+  <div class="container mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <!-- Back Button -->
     <a
       href="/exercises"
-      class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+      class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
     >
-      <span class="material-symbols-outlined text-base">arrow_back</span>
+      <ArrowLeft className="h-4 w-4" />
       Powrót do ćwiczeń
     </a>
 
@@ -28,65 +62,72 @@ const { id } = Astro.params;
       <!-- Image Section -->
       <div>
         <div class="aspect-square w-full overflow-hidden rounded-lg bg-muted">
-          <!-- Exercise image will be loaded here -->
-          <div class="flex h-full items-center justify-center">
-            <span class="material-symbols-outlined text-6xl text-muted-foreground">exercise</span>
-          </div>
+          {
+            exercise.image_path ? (
+              <img
+                src={exercise.image_path}
+                alt={exercise.image_alt || exercise.name}
+                class="h-full w-full object-cover"
+              />
+            ) : (
+              <div class="flex h-full items-center justify-center">
+                <Dumbbell className="h-16 w-16 text-muted-foreground" />
+              </div>
+            )
+          }
         </div>
       </div>
 
       <!-- Info Section -->
       <div>
         <div class="mb-4">
-          <h1 class="text-3xl font-bold tracking-tight">Exercise Name</h1>
-          <p class="mt-2 text-sm text-muted-foreground">Category • Difficulty</p>
+          <h1 class="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">
+            {exercise.name}
+          </h1>
         </div>
 
         <!-- Meta Info -->
-        <div class="mb-6 flex gap-4">
+        <div class="mb-6 flex flex-wrap gap-3">
           <div class="rounded-lg border bg-card px-4 py-2">
-            <p class="text-xs text-muted-foreground">Category</p>
-            <p class="font-semibold">Chest</p>
+            <p class="text-xs text-muted-foreground">Kategoria</p>
+            <p class="font-semibold">{exercise.category.name}</p>
           </div>
           <div class="rounded-lg border bg-card px-4 py-2">
-            <p class="text-xs text-muted-foreground">Difficulty</p>
-            <p class="font-semibold">Medium</p>
+            <p class="text-xs text-muted-foreground">Poziom trudności</p>
+            <p class="font-semibold">{DIFFICULTY_LABELS[exercise.difficulty]}</p>
           </div>
         </div>
+
+        <!-- Category Description -->
+        {
+          exercise.category.description && (
+            <div class="mb-6">
+              <h2 class="mb-2 text-lg font-semibold">Grupa mięśniowa</h2>
+              <p class="text-muted-foreground">{exercise.category.description}</p>
+            </div>
+          )
+        }
 
         <!-- Description -->
-        <div class="mb-6">
-          <h2 class="mb-2 text-lg font-semibold">Opis</h2>
-          <p class="text-muted-foreground">Exercise description will be loaded here...</p>
-        </div>
+        {
+          exercise.description && (
+            <div class="mb-6">
+              <h2 class="mb-2 text-lg font-semibold">Opis techniki wykonania</h2>
+              <p class="whitespace-pre-line text-muted-foreground">{exercise.description}</p>
+            </div>
+          )
+        }
 
         <!-- Action Buttons -->
-        <div class="flex gap-4">
-          <button
-            class="flex-1 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            Dodaj do planu
-          </button>
+        <div class="flex flex-col gap-4 sm:flex-row">
           <a
-            href="/categories"
-            class="inline-flex items-center gap-2 rounded-lg border bg-background px-6 py-3 font-medium hover:bg-muted"
+            href={`/categories/${exercise.category.id}`}
+            class="inline-flex items-center justify-center gap-2 rounded-lg border bg-background px-6 py-3 font-medium transition-colors hover:bg-muted"
           >
             Zobacz kategorię
           </a>
         </div>
       </div>
     </div>
-
-    <!-- Additional Info Section -->
-    <div class="mt-12">
-      <h2 class="mb-4 text-2xl font-bold">Jak wykonać</h2>
-      <div class="rounded-lg border bg-card p-6">
-        <p class="text-muted-foreground">Szczegółowe instrukcje wykonania ćwiczenia będą dostępne tutaj.</p>
-      </div>
-    </div>
   </div>
 </Layout>
-
-<script define:vars={{ exerciseId: id }}>
-  console.log("Exercise detail page loaded, ID:", exerciseId);
-</script>
