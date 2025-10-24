@@ -1,94 +1,135 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { ExercisesGrid } from "@/components/exercises/ExercisesGrid";
+import { ExercisesFilters } from "@/components/exercises/ExercisesFilters";
+import type { ExercisesPaginatedResponseDTO, CategoryDTO } from "@/types";
 
 export const prerender = false;
 
+// Sprawdź autoryzację
 const user = Astro.locals.user;
 
 if (!user) {
   return Astro.redirect("/auth/login");
 }
+
+// Parsing URL parameters
+const searchParams = Astro.url.searchParams;
+const categoryId = searchParams.get("category_id") || "";
+const difficulty = searchParams.get("difficulty") || "";
+const search = searchParams.get("search") || "";
+const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+const limit = 20;
+
+// Budowanie URL do API exercises
+const apiParams = new URLSearchParams();
+if (categoryId) apiParams.set("category_id", categoryId);
+if (difficulty) apiParams.set("difficulty", difficulty);
+if (search) apiParams.set("search", search);
+apiParams.set("page", page.toString());
+apiParams.set("limit", limit.toString());
+
+// Fetch exercises
+const exercisesResponse = await fetch(`${Astro.url.origin}/api/exercises?${apiParams.toString()}`, {
+  headers: {
+    Cookie: Astro.request.headers.get("Cookie") || "",
+  },
+});
+
+if (!exercisesResponse.ok) {
+  if (exercisesResponse.status === 401) {
+    return Astro.redirect("/auth/login");
+  }
+  // eslint-disable-next-line no-console
+  console.error("Error fetching exercises:", exercisesResponse.statusText);
+  return Astro.redirect("/error?message=" + encodeURIComponent("Nie udało się załadować ćwiczeń"));
+}
+
+const exercisesData: ExercisesPaginatedResponseDTO = await exercisesResponse.json();
+
+// Fetch categories dla filtra
+const categoriesResponse = await fetch(`${Astro.url.origin}/api/categories`, {
+  headers: {
+    Cookie: Astro.request.headers.get("Cookie") || "",
+  },
+});
+
+if (!categoriesResponse.ok) {
+  // eslint-disable-next-line no-console
+  console.error("Error fetching categories:", categoriesResponse.statusText);
+  return Astro.redirect("/error?message=" + encodeURIComponent("Nie udało się załadować kategorii"));
+}
+
+const categoriesResult = await categoriesResponse.json();
+const categories: CategoryDTO[] = categoriesResult.data || [];
+
+// Prepare data for components
+const exercises = exercisesData.data || [];
+const pagination = exercisesData.pagination;
 ---
 
-<Layout title="Exercises - Gym Track">
-  <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+<Layout title="Baza ćwiczeń - Gym Track">
+  <main class="container mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Baza ćwiczeń</h1>
-      <p class="mt-2 text-muted-foreground">Przeglądaj i filtruj ponad 50 ćwiczeń</p>
+      <h1 class="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">Baza ćwiczeń</h1>
+      <p class="text-lg text-muted-foreground">
+        Znaleziono <span class="font-semibold">{pagination.total}</span>
+        {pagination.total === 1 ? "ćwiczenie" : "ćwiczeń"}
+      </p>
     </div>
 
-    <!-- Filters Section -->
-    <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <!-- Search -->
-      <div class="lg:col-span-2">
-        <label for="search" class="sr-only">Szukaj</label>
-        <input
-          type="text"
-          id="search"
-          placeholder="Szukaj ćwiczenia..."
-          class="w-full rounded-lg border bg-background px-4 py-2"
-        />
-      </div>
+    <!-- Filters -->
+    <ExercisesFilters
+      categories={categories}
+      initialSearch={search}
+      initialCategoryId={categoryId}
+      initialDifficulty={difficulty}
+      client:load
+    />
 
-      <!-- Category Filter -->
-      <div>
-        <label for="category" class="sr-only">Kategoria</label>
-        <select id="category" class="w-full rounded-lg border bg-background px-4 py-2">
-          <option value="">Wszystkie kategorie</option>
-          <!-- Categories will be loaded dynamically -->
-        </select>
-      </div>
-
-      <!-- Difficulty Filter -->
-      <div>
-        <label for="difficulty" class="sr-only">Trudność</label>
-        <select id="difficulty" class="w-full rounded-lg border bg-background px-4 py-2">
-          <option value="">Wszystkie poziomy</option>
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Exercises Grid -->
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      <!-- Exercise Card Template - will be populated dynamically -->
-      <div class="rounded-lg border bg-card p-6 shadow-sm">
-        <div class="mb-4 aspect-video w-full rounded-lg bg-muted"></div>
-        <h3 class="mb-2 text-lg font-semibold">Exercise Name</h3>
-        <p class="mb-2 text-sm text-muted-foreground">Category • Difficulty</p>
-        <p class="text-sm text-muted-foreground line-clamp-2">Description...</p>
-        <a href="/exercises/[id]" class="mt-4 inline-block text-sm text-primary hover:underline">
-          Zobacz szczegóły →
-        </a>
-      </div>
-    </div>
-
-    <!-- Empty State -->
-    <div class="rounded-lg border bg-card p-12 text-center shadow-sm hidden" id="empty-state">
-      <span class="material-symbols-outlined mb-4 text-6xl text-muted-foreground">search_off</span>
-      <h3 class="mb-2 text-lg font-semibold">Nie znaleziono ćwiczeń</h3>
-      <p class="text-sm text-muted-foreground">Spróbuj zmienić filtry</p>
-    </div>
+    <!-- Grid -->
+    <ExercisesGrid exercises={exercises} client:load />
 
     <!-- Pagination -->
-    <div class="mt-8 flex items-center justify-between">
-      <p class="text-sm text-muted-foreground">
-        Showing <span class="font-medium">1</span> to <span class="font-medium">20</span> of
-        <span class="font-medium">50</span> results
-      </p>
-      <div class="flex gap-2">
-        <button class="rounded-lg border bg-background px-4 py-2 text-sm hover:bg-muted disabled:opacity-50" disabled>
-          Previous
-        </button>
-        <button class="rounded-lg border bg-background px-4 py-2 text-sm hover:bg-muted"> Next </button>
-      </div>
-    </div>
-  </div>
-</Layout>
+    {
+      pagination.total_pages > 1 && (
+        <div class="mt-8 flex flex-col items-center justify-between gap-4 md:flex-row">
+          <p class="text-sm text-muted-foreground">
+            Wyświetlane {(page - 1) * limit + 1}-{Math.min(page * limit, pagination.total)} z {pagination.total} wyników
+          </p>
 
-<script>
-  // Client-side functionality will be added here console.log("Exercises page loaded");
-</script>
+          <div class="flex items-center gap-2">
+            <button
+              onclick={`
+                const params = new URLSearchParams(window.location.search);
+                params.set('page', '${page - 1}');
+                window.location.href = '/exercises?' + params.toString();
+              `}
+              disabled={page === 1}
+              class="rounded-lg border bg-background px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
+            >
+              Poprzednia
+            </button>
+
+            <span class="text-sm text-muted-foreground">
+              Strona {page} z {pagination.total_pages}
+            </span>
+
+            <button
+              onclick={`
+                const params = new URLSearchParams(window.location.search);
+                params.set('page', '${page + 1}');
+                window.location.href = '/exercises?' + params.toString();
+              `}
+              disabled={page === pagination.total_pages}
+              class="rounded-lg border bg-background px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
+            >
+              Następna
+            </button>
+          </div>
+        </div>
+      )
+    }
+  </main>
+</Layout>

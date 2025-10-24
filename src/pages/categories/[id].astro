@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { ArrowLeft, Dumbbell } from "lucide-react";
-import type { CategoryDTO, ExerciseListItemDTO } from "@/types";
+import type { ExerciseListItemDTO } from "@/types";
 
 export const prerender = false;
 
@@ -86,18 +86,15 @@ const exerciseCount = exercises.length;
       <h1 class="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">
         {category.name}
       </h1>
-      {
-        category.description && (
-          <p class="text-lg text-muted-foreground">{category.description}</p>
-        )
-      }
+      {category.description && <p class="text-lg text-muted-foreground">{category.description}</p>}
     </div>
 
     <!-- Exercises Section Header -->
     <div class="mb-6">
       <h2 class="text-xl font-semibold">Ćwiczenia w tej kategorii</h2>
       <p class="text-sm text-muted-foreground">
-        {exerciseCount} {exerciseCount === 1 ? "ćwiczenie" : "ćwiczeń"}
+        {exerciseCount}
+        {exerciseCount === 1 ? "ćwiczenie" : "ćwiczeń"}
       </p>
     </div>
 
@@ -128,9 +125,7 @@ const exerciseCount = exercises.length;
 
               {/* Treść karty */}
               <div class="p-4">
-                <h3 class="mb-2 text-lg font-semibold group-hover:text-primary">
-                  {exercise.name}
-                </h3>
+                <h3 class="mb-2 text-lg font-semibold group-hover:text-primary">{exercise.name}</h3>
 
                 {/* Poziom trudności */}
                 <div class="mb-2">
@@ -139,25 +134,22 @@ const exerciseCount = exercises.length;
                       "inline-block rounded-full px-2 py-1 text-xs font-medium",
                       {
                         "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200":
-                          exercise.difficulty === "beginner",
+                          exercise.difficulty === "easy",
                         "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200":
-                          exercise.difficulty === "intermediate",
-                        "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200":
-                          exercise.difficulty === "advanced",
+                          exercise.difficulty === "medium",
+                        "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200": exercise.difficulty === "hard",
                       },
                     ]}
                   >
-                    {exercise.difficulty === "beginner" && "Początkujący"}
-                    {exercise.difficulty === "intermediate" && "Średniozaawansowany"}
-                    {exercise.difficulty === "advanced" && "Zaawansowany"}
+                    {exercise.difficulty === "easy" && "Łatwy"}
+                    {exercise.difficulty === "medium" && "Średni"}
+                    {exercise.difficulty === "hard" && "Trudny"}
                   </span>
                 </div>
 
                 {/* Opis */}
                 {exercise.description && (
-                  <p class="line-clamp-2 text-sm text-muted-foreground">
-                    {exercise.description}
-                  </p>
+                  <p class="line-clamp-2 text-sm text-muted-foreground">{exercise.description}</p>
                 )}
               </div>
             </a>
@@ -167,12 +159,9 @@ const exerciseCount = exercises.length;
         /* Empty State */
         <div class="flex flex-col items-center justify-center rounded-lg border bg-card p-12 text-center shadow-sm">
           <Dumbbell className="mb-4 h-16 w-16 text-muted-foreground" />
-          <h3 class="mb-2 text-lg font-semibold">
-            Brak ćwiczeń w tej kategorii
-          </h3>
+          <h3 class="mb-2 text-lg font-semibold">Brak ćwiczeń w tej kategorii</h3>
           <p class="max-w-md text-muted-foreground">
-            W tej kategorii nie ma jeszcze żadnych ćwiczeń. Sprawdź inne
-            kategorie.
+            W tej kategorii nie ma jeszcze żadnych ćwiczeń. Sprawdź inne kategorie.
           </p>
         </div>
       )
