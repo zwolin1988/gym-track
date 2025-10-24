@@ -9,10 +9,10 @@ import type { CategoriesHeaderProps } from "./types";
 export function CategoriesHeader({ totalCategories }: CategoriesHeaderProps) {
   return (
     <header className="mb-8">
-      <h1 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">Kategorie wiczeD</h1>
+      <h1 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">Kategorie Ćwiczeń</h1>
       <p className="text-lg text-muted-foreground">
-        Wybierz kategori mi[niow, aby przeglda dostpne wiczenia.{" "}
-        <span className="font-semibold">Dostpnych kategorii: {totalCategories}</span>
+        Wybierz kategorię mięśniową, aby przeglądać dostępne ćwiczenia.{" "}
+        <span className="font-semibold">Dostępnych kategorii: {totalCategories}</span>
       </p>
     </header>
   );
