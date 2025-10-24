@@ -1,137 +1,84 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { LastWorkoutSummary } from "@/components/dashboard/LastWorkoutSummary";
+import { VolumeChart } from "@/components/dashboard/VolumeChart";
+import { QuickActions } from "@/components/dashboard/QuickActions";
+import type { WorkoutListItemDTO, WorkoutStatsDataPointDTO } from "@/types";
 
 export const prerender = false;
 
-// Get authenticated user from middleware
-const user = Astro.locals.user;
-
-// Redirect to login if not authenticated (safety check - middleware should handle this)
-if (!user) {
+// Sprawdź autoryzację
+if (!Astro.locals.user) {
   return Astro.redirect("/auth/login");
+}
+
+// Pobierz dane równolegle dla wydajności
+const [activeWorkoutResponse, lastWorkoutResponse, statsResponse] = await Promise.all([
+  // 1. Aktywny trening
+  fetch(`${Astro.url.origin}/api/workouts/active`, {
+    headers: {
+      Cookie: Astro.request.headers.get("Cookie") || "",
+    },
+  }),
+
+  // 2. Ostatni zakończony trening
+  fetch(`${Astro.url.origin}/api/workouts?status=completed&limit=1&sort=started_at&order=desc`, {
+    headers: {
+      Cookie: Astro.request.headers.get("Cookie") || "",
+    },
+  }),
+
+  // 3. Statystyki do wykresu (ostatnie 4 tygodnie)
+  fetch(`${Astro.url.origin}/api/workouts/stats?period=4w`, {
+    headers: {
+      Cookie: Astro.request.headers.get("Cookie") || "",
+    },
+  }),
+]);
+
+// Obsługa błędów autoryzacji
+if (activeWorkoutResponse.status === 401 || lastWorkoutResponse.status === 401 || statsResponse.status === 401) {
+  return Astro.redirect("/auth/login");
+}
+
+// Parse responses z obsługą błędów
+let lastWorkout: WorkoutListItemDTO | null = null;
+if (lastWorkoutResponse.ok && lastWorkoutResponse.status !== 500) {
+  try {
+    const data = await lastWorkoutResponse.json();
+    lastWorkout = data.data?.[0] || null;
+  } catch {
+    // Ignore parsing errors
+  }
+}
+
+let volumeChartData: WorkoutStatsDataPointDTO[] = [];
+if (statsResponse.ok) {
+  try {
+    const data = await statsResponse.json();
+    volumeChartData = data.data?.workouts || [];
+  } catch {
+    // Ignore parsing errors
+  }
 }
 ---
 
 <Layout title="Dashboard - Gym Track">
-  <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-    <!-- Welcome Section -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Dashboard</h1>
-      <p class="mt-2 text-muted-foreground">
-        Witaj ponownie, <span class="font-medium text-foreground">{user.email}</span>!
-      </p>
-    </div>
+  <main class="container mx-auto px-4 py-8 max-w-7xl">
+    <!-- Szybkie akcje -->
+    <QuickActions client:load />
 
-    <!-- Quick Stats Grid -->
-    <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <!-- Stat Card 1 -->
-      <div class="rounded-lg border bg-card p-6 shadow-sm">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-muted-foreground">Plany treningowe</p>
-            <p class="mt-2 text-3xl font-bold">0</p>
-          </div>
-          <span class="material-symbols-outlined text-4xl text-primary">list_alt</span>
-        </div>
+    <!-- Grid Layout: Ostatni trening + Wykres -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <!-- Ostatni trening -->
+      <div>
+        <LastWorkoutSummary lastWorkout={lastWorkout} client:load />
       </div>
 
-      <!-- Stat Card 2 -->
-      <div class="rounded-lg border bg-card p-6 shadow-sm">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-muted-foreground">Treningi w tym tygodniu</p>
-            <p class="mt-2 text-3xl font-bold">0</p>
-          </div>
-          <span class="material-symbols-outlined text-4xl text-primary">fitness_center</span>
-        </div>
-      </div>
-
-      <!-- Stat Card 3 -->
-      <div class="rounded-lg border bg-card p-6 shadow-sm">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-muted-foreground">Łączny czas (min)</p>
-            <p class="mt-2 text-3xl font-bold">0</p>
-          </div>
-          <span class="material-symbols-outlined text-4xl text-primary">schedule</span>
-        </div>
-      </div>
-
-      <!-- Stat Card 4 -->
-      <div class="rounded-lg border bg-card p-6 shadow-sm">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-muted-foreground">Objętość (kg)</p>
-            <p class="mt-2 text-3xl font-bold">0</p>
-          </div>
-          <span class="material-symbols-outlined text-4xl text-primary">monitoring</span>
-        </div>
+      <!-- Wykres objętości -->
+      <div>
+        <VolumeChart data={volumeChartData} period="4w" client:load />
       </div>
     </div>
-
-    <!-- Quick Actions -->
-    <div class="mb-8">
-      <h2 class="mb-4 text-xl font-semibold">Szybkie akcje</h2>
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <!-- Action Card 1 -->
-        <a
-          href="/workout-plans/new"
-          class="group flex items-center gap-4 rounded-lg border bg-card p-6 shadow-sm transition-all hover:border-primary hover:shadow-md cursor-pointer"
-        >
-          <div class="rounded-full bg-primary/10 p-3 group-hover:bg-primary/20">
-            <span class="material-symbols-outlined text-2xl text-primary">add</span>
-          </div>
-          <div>
-            <h3 class="font-semibold">Nowy plan treningowy</h3>
-            <p class="text-sm text-muted-foreground">Stwórz nowy plan</p>
-          </div>
-        </a>
-
-        <!-- Action Card 2 -->
-        <a
-          href="/workouts/start"
-          class="group flex items-center gap-4 rounded-lg border bg-card p-6 shadow-sm transition-all hover:border-primary hover:shadow-md cursor-pointer"
-        >
-          <div class="rounded-full bg-primary/10 p-3 group-hover:bg-primary/20">
-            <span class="material-symbols-outlined text-2xl text-primary">play_arrow</span>
-          </div>
-          <div>
-            <h3 class="font-semibold">Rozpocznij trening</h3>
-            <p class="text-sm text-muted-foreground">Zacznij nową sesję</p>
-          </div>
-        </a>
-
-        <!-- Action Card 3 -->
-        <a
-          href="/exercises"
-          class="group flex items-center gap-4 rounded-lg border bg-card p-6 shadow-sm transition-all hover:border-primary hover:shadow-md cursor-pointer"
-        >
-          <div class="rounded-full bg-primary/10 p-3 group-hover:bg-primary/20">
-            <span class="material-symbols-outlined text-2xl text-primary">exercise</span>
-          </div>
-          <div>
-            <h3 class="font-semibold">Przeglądaj ćwiczenia</h3>
-            <p class="text-sm text-muted-foreground">Zobacz bazę ćwiczeń</p>
-          </div>
-        </a>
-      </div>
-    </div>
-
-    <!-- Recent Activity / Empty State -->
-    <div>
-      <h2 class="mb-4 text-xl font-semibold">Ostatnia aktywność</h2>
-      <div class="rounded-lg border bg-card p-12 text-center shadow-sm">
-        <span class="material-symbols-outlined mb-4 text-6xl text-muted-foreground">inbox</span>
-        <h3 class="mb-2 text-lg font-semibold">Brak treningów</h3>
-        <p class="mb-6 text-sm text-muted-foreground">Rozpocznij swój pierwszy trening, aby zobaczyć tutaj aktywność</p>
-        <a
-          href="/workout-plans"
-          class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer"
-        >
-          <span class="material-symbols-outlined text-base">add</span>
-          Stwórz plan treningowy
-        </a>
-      </div>
-    </div>
-  </div>
+  </main>
 </Layout>

@@ -125,26 +125,3 @@ const { id } = Astro.params;
     </div>
   </div>
 </Layout>
-
-<script define:vars={{ planId: id }}>
-  console.log("Workout plan detail page loaded, ID:", planId);
-
-  // Start workout button handler
-  document.getElementById("start-workout-btn")?.addEventListener("click", () => {
-    console.log("Start workout clicked");
-    // Will redirect to workout start page with plan selected
-    window.location.href = `/workouts/start?plan_id=${planId}`;
-  });
-
-  // Archive button handler
-  document.getElementById("archive-btn")?.addEventListener("click", () => {
-    console.log("Archive plan clicked");
-    // Will be implemented with API call
-  });
-
-  // Delete button handler
-  document.getElementById("delete-btn")?.addEventListener("click", () => {
-    console.log("Delete plan clicked");
-    // Will be implemented with confirmation modal and API call
-  });
-</script>

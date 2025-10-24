@@ -158,20 +158,3 @@ const { id } = Astro.params;
     </div>
   </div>
 </Layout>
-
-<script define:vars={{ planId: id }}>
-  console.log("Edit workout plan page loaded, ID:", planId);
-
-  // Add exercise button handler
-  document.getElementById("add-exercise-btn")?.addEventListener("click", () => {
-    console.log("Add exercise clicked");
-    // Will be implemented with exercise selection modal
-  });
-
-  // Form submission handler
-  document.getElementById("edit-plan-form")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    console.log("Form submitted");
-    // Will be implemented with API call
-  });
-</script>
