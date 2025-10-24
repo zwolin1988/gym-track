@@ -1,8 +1,11 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { ArrowLeft, Dumbbell } from "lucide-react";
+import type { CategoryDTO, ExerciseListItemDTO } from "@/types";
 
 export const prerender = false;
 
+// Sprawdź autoryzację
 const user = Astro.locals.user;
 
 if (!user) {
@@ -10,56 +13,169 @@ if (!user) {
 }
 
 const { id } = Astro.params;
+
+// Walidacja ID
+if (!id) {
+  return Astro.redirect("/categories");
+}
+
+// Pobierz dane kategorii
+const { data: category, error: categoryError } = await Astro.locals.supabase
+  .from("categories")
+  .select("*")
+  .eq("id", id)
+  .single();
+
+// Obsługa błędu lub brak kategorii
+if (categoryError || !category) {
+  // eslint-disable-next-line no-console
+  console.error("Error fetching category:", categoryError);
+  return Astro.redirect("/categories");
+}
+
+// Pobierz ćwiczenia dla tej kategorii
+const { data: exercisesRaw, error: exercisesError } = await Astro.locals.supabase
+  .from("exercises")
+  .select(
+    `
+    *,
+    category:categories!inner(id, name, slug)
+  `
+  )
+  .eq("category_id", id)
+  .order("name", { ascending: true });
+
+// Obsługa błędu ćwiczeń (nie krytyczny - możemy pokazać pustą listę)
+if (exercisesError) {
+  // eslint-disable-next-line no-console
+  console.error("Error fetching exercises:", exercisesError);
+}
+
+// Transformacja danych ćwiczeń
+const exercises: ExerciseListItemDTO[] = (exercisesRaw || []).map((ex) => ({
+  id: ex.id,
+  name: ex.name,
+  description: ex.description,
+  difficulty: ex.difficulty,
+  image_path: ex.image_path,
+  image_alt: ex.image_alt,
+  created_at: ex.created_at,
+  category: {
+    id: ex.category.id,
+    name: ex.category.name,
+    slug: ex.category.slug,
+  },
+}));
+
+const exerciseCount = exercises.length;
 ---
 
-<Layout title="Category - Gym Track">
-  <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+<Layout title={`${category.name} - Kategorie - Gym Track`}>
+  <div class="container mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <!-- Back Button -->
     <a
       href="/categories"
-      class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+      class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
     >
-      <span class="material-symbols-outlined text-base">arrow_back</span>
+      <ArrowLeft className="h-4 w-4" />
       Powrót do kategorii
     </a>
 
     <!-- Category Header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Category Name</h1>
-      <p class="mt-2 text-muted-foreground">Category description will be loaded here</p>
+      <h1 class="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">
+        {category.name}
+      </h1>
+      {
+        category.description && (
+          <p class="text-lg text-muted-foreground">{category.description}</p>
+        )
+      }
     </div>
 
-    <!-- Exercises in this category -->
-    <div class="mb-4">
+    <!-- Exercises Section Header -->
+    <div class="mb-6">
       <h2 class="text-xl font-semibold">Ćwiczenia w tej kategorii</h2>
-      <p class="text-sm text-muted-foreground">X ćwiczeń</p>
+      <p class="text-sm text-muted-foreground">
+        {exerciseCount} {exerciseCount === 1 ? "ćwiczenie" : "ćwiczeń"}
+      </p>
     </div>
 
     <!-- Exercises Grid -->
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      <!-- Exercise Card Template -->
-      <a
-        href="/exercises/[id]"
-        class="group overflow-hidden rounded-lg border bg-card shadow-sm transition-all hover:border-primary hover:shadow-md"
-      >
-        <div class="aspect-video w-full bg-muted"></div>
-        <div class="p-6">
-          <h3 class="mb-2 text-lg font-semibold group-hover:text-primary">Exercise Name</h3>
-          <p class="mb-2 text-sm text-muted-foreground">Difficulty</p>
-          <p class="text-sm text-muted-foreground line-clamp-2">Description...</p>
-        </div>
-      </a>
-    </div>
+    {
+      exercises.length > 0 ? (
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {exercises.map((exercise) => (
+            <a
+              href={`/exercises/${exercise.id}`}
+              class="group block overflow-hidden rounded-lg border bg-card shadow-sm transition-all duration-300 hover:scale-105 hover:border-primary hover:shadow-xl"
+            >
+              {/* Obrazek ćwiczenia */}
+              <div class="relative h-48 bg-muted">
+                {exercise.image_path ? (
+                  <img
+                    src={exercise.image_path}
+                    alt={exercise.image_alt || exercise.name}
+                    loading="lazy"
+                    class="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div class="flex h-full w-full items-center justify-center">
+                    <Dumbbell className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
 
-    <!-- Empty State -->
-    <div class="rounded-lg border bg-card p-12 text-center shadow-sm hidden" id="empty-state">
-      <span class="material-symbols-outlined mb-4 text-6xl text-muted-foreground">exercise</span>
-      <h3 class="mb-2 text-lg font-semibold">Brak ćwiczeń w tej kategorii</h3>
-      <p class="text-sm text-muted-foreground">Sprawdź inne kategorie</p>
-    </div>
+              {/* Treść karty */}
+              <div class="p-4">
+                <h3 class="mb-2 text-lg font-semibold group-hover:text-primary">
+                  {exercise.name}
+                </h3>
+
+                {/* Poziom trudności */}
+                <div class="mb-2">
+                  <span
+                    class:list={[
+                      "inline-block rounded-full px-2 py-1 text-xs font-medium",
+                      {
+                        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200":
+                          exercise.difficulty === "beginner",
+                        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200":
+                          exercise.difficulty === "intermediate",
+                        "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200":
+                          exercise.difficulty === "advanced",
+                      },
+                    ]}
+                  >
+                    {exercise.difficulty === "beginner" && "Początkujący"}
+                    {exercise.difficulty === "intermediate" && "Średniozaawansowany"}
+                    {exercise.difficulty === "advanced" && "Zaawansowany"}
+                  </span>
+                </div>
+
+                {/* Opis */}
+                {exercise.description && (
+                  <p class="line-clamp-2 text-sm text-muted-foreground">
+                    {exercise.description}
+                  </p>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
+      ) : (
+        /* Empty State */
+        <div class="flex flex-col items-center justify-center rounded-lg border bg-card p-12 text-center shadow-sm">
+          <Dumbbell className="mb-4 h-16 w-16 text-muted-foreground" />
+          <h3 class="mb-2 text-lg font-semibold">
+            Brak ćwiczeń w tej kategorii
+          </h3>
+          <p class="max-w-md text-muted-foreground">
+            W tej kategorii nie ma jeszcze żadnych ćwiczeń. Sprawdź inne
+            kategorie.
+          </p>
+        </div>
+      )
+    }
   </div>
 </Layout>
-
-<script define:vars={{ categoryId: id }}>
-  console.log("Category detail page loaded, ID:", categoryId);
-</script>

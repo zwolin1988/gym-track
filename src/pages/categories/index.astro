@@ -1,48 +1,59 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { CategoriesHeader } from "@/components/categories/CategoriesHeader";
+import { CategoriesGrid } from "@/components/categories/CategoriesGrid";
+import type { CategoryWithExerciseCountViewModel } from "@/components/categories/types";
 
 export const prerender = false;
 
+// Sprawdź autoryzację
 const user = Astro.locals.user;
 
 if (!user) {
   return Astro.redirect("/auth/login");
 }
+
+// Pobierz dane kategorii z Supabase z liczbą ćwiczeń
+const { data: categoriesRaw, error } = await Astro.locals.supabase
+  .from("categories")
+  .select(
+    `
+    *,
+    exercises:exercises(count)
+  `
+  )
+  .order("order_index", { ascending: true });
+
+// Obsługa błędu
+if (error) {
+  // eslint-disable-next-line no-console
+  console.error("Error fetching categories:", error);
+  return Astro.redirect("/error?message=" + encodeURIComponent("Nie udało się załadować kategorii"));
+}
+
+// Transformacja danych do ViewModel
+const categories: CategoryWithExerciseCountViewModel[] = (categoriesRaw || []).map(
+  (cat: { exercises?: { count: number }[] } & CategoryWithExerciseCountViewModel["category"]) => ({
+    category: {
+      id: cat.id,
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description,
+      image_path: cat.image_path,
+      image_alt: cat.image_alt,
+      order_index: cat.order_index,
+      created_at: cat.created_at,
+    },
+    exerciseCount: cat.exercises?.[0]?.count || 0,
+  })
+);
+
+const totalCategories = categories.length;
 ---
 
-<Layout title="Categories - Gym Track">
-  <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Kategorie ćwiczeń</h1>
-      <p class="mt-2 text-muted-foreground">Przeglądaj ćwiczenia według partii mięśniowych</p>
-    </div>
-
-    <!-- Categories Grid -->
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      <!-- Category Card Template - will be populated dynamically -->
-      <a
-        href="/categories/[id]"
-        class="group overflow-hidden rounded-lg border bg-card shadow-sm transition-all hover:border-primary hover:shadow-md"
-      >
-        <div class="aspect-video w-full bg-muted"></div>
-        <div class="p-6">
-          <h3 class="mb-2 text-lg font-semibold group-hover:text-primary">Category Name</h3>
-          <p class="mb-2 text-sm text-muted-foreground line-clamp-2">Category description...</p>
-          <p class="text-sm font-medium text-primary">X ćwiczeń</p>
-        </div>
-      </a>
-    </div>
-
-    <!-- Empty State -->
-    <div class="rounded-lg border bg-card p-12 text-center shadow-sm hidden" id="empty-state">
-      <span class="material-symbols-outlined mb-4 text-6xl text-muted-foreground">category</span>
-      <h3 class="mb-2 text-lg font-semibold">Brak kategorii</h3>
-      <p class="text-sm text-muted-foreground">Kategorie zostaną wczytane wkrótce</p>
-    </div>
-  </div>
+<Layout title="Kategorie ćwiczeń - Gym Track">
+  <main class="container mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <CategoriesHeader totalCategories={totalCategories} client:load />
+    <CategoriesGrid categories={categories} client:load />
+  </main>
 </Layout>
-
-<script>
-  console.log("Categories page loaded");
-</script>
