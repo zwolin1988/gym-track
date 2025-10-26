@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import WorkoutPlanDetail from "@/components/workout-plans/WorkoutPlanDetail";
 
 export const prerender = false;
 
@@ -10,118 +11,14 @@ if (!user) {
 }
 
 const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/workout-plans");
+}
 ---
 
 <Layout title="Workout Plan Details - Gym Track">
   <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-    <!-- Back Button -->
-    <a
-      href="/workout-plans"
-      class="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-    >
-      <span class="material-symbols-outlined text-base">arrow_back</span>
-      Powrót do planów
-    </a>
-
-    <!-- Header with Actions -->
-    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      <div>
-        <div class="mb-2 flex items-center gap-3">
-          <h1 class="text-3xl font-bold tracking-tight">Plan Name</h1>
-          <span class="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"> Aktywny </span>
-        </div>
-        <p class="text-muted-foreground">Plan description will be loaded here</p>
-        <p class="mt-2 text-sm text-muted-foreground">Utworzono: DD/MM/YYYY</p>
-      </div>
-      <div class="flex gap-2">
-        <a
-          href={`/workout-plans/${id}/edit`}
-          class="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 font-medium hover:bg-muted"
-        >
-          <span class="material-symbols-outlined text-base">edit</span>
-          Edytuj
-        </a>
-        <button
-          id="start-workout-btn"
-          class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          <span class="material-symbols-outlined text-base">play_arrow</span>
-          Rozpocznij trening
-        </button>
-      </div>
-    </div>
-
-    <!-- Plan Stats -->
-    <div class="mb-8 grid gap-4 sm:grid-cols-3">
-      <div class="rounded-lg border bg-card p-4">
-        <p class="text-sm text-muted-foreground">Ćwiczenia</p>
-        <p class="mt-1 text-2xl font-bold">0</p>
-      </div>
-      <div class="rounded-lg border bg-card p-4">
-        <p class="text-sm text-muted-foreground">Treningi wykonane</p>
-        <p class="mt-1 text-2xl font-bold">0</p>
-      </div>
-      <div class="rounded-lg border bg-card p-4">
-        <p class="text-sm text-muted-foreground">Ostatni trening</p>
-        <p class="mt-1 text-lg font-semibold">Nigdy</p>
-      </div>
-    </div>
-
-    <!-- Exercises in Plan -->
-    <div>
-      <h2 class="mb-4 text-xl font-semibold">Ćwiczenia w planie</h2>
-      <div class="space-y-3">
-        <!-- Exercise Item Template -->
-        <div class="rounded-lg border bg-card p-4">
-          <div class="flex items-start gap-4">
-            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
-              <span class="material-symbols-outlined text-2xl text-muted-foreground">exercise</span>
-            </div>
-            <div class="flex-1">
-              <div class="mb-1 flex items-center justify-between">
-                <h3 class="font-semibold">Exercise Name</h3>
-                <span class="text-sm text-muted-foreground">Kolejność: 1</span>
-              </div>
-              <p class="mb-2 text-sm text-muted-foreground">Category • Difficulty</p>
-              <div class="flex gap-4 text-sm">
-                <span class="text-muted-foreground">Serie: <span class="font-medium text-foreground">3</span></span>
-                <span class="text-muted-foreground"
-                  >Powtórzenia: <span class="font-medium text-foreground">10-12</span></span
-                >
-                <span class="text-muted-foreground"
-                  >Odpoczynek: <span class="font-medium text-foreground">90s</span></span
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div class="rounded-lg border bg-card p-8 text-center hidden" id="exercises-empty">
-        <span class="material-symbols-outlined mb-2 text-4xl text-muted-foreground">exercise</span>
-        <p class="text-sm text-muted-foreground">Brak ćwiczeń w tym planie</p>
-      </div>
-    </div>
-
-    <!-- Danger Zone -->
-    <div class="mt-12 rounded-lg border border-destructive/50 p-6">
-      <h3 class="mb-2 font-semibold text-destructive">Strefa niebezpieczna</h3>
-      <p class="mb-4 text-sm text-muted-foreground">Akcje nieodwracalne</p>
-      <div class="flex gap-4">
-        <button
-          id="archive-btn"
-          class="rounded-lg border border-destructive/50 px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/10"
-        >
-          Archiwizuj plan
-        </button>
-        <button
-          id="delete-btn"
-          class="rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90"
-        >
-          Usuń plan
-        </button>
-      </div>
-    </div>
+    <WorkoutPlanDetail planId={id} client:load />
   </div>
 </Layout>

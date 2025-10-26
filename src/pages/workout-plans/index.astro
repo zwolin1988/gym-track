@@ -1,13 +1,99 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { WorkoutPlansFilters } from "@/components/workout-plans/WorkoutPlansFilters";
+import WorkoutPlanCard from "@/components/workout-plans/WorkoutPlanCard";
+import type { WorkoutPlanListItemDTO } from "@/types";
 
 export const prerender = false;
 
+// 1. Authentication check
 const user = Astro.locals.user;
 
 if (!user) {
   return Astro.redirect("/auth/login");
 }
+
+// 2. Parse query params
+const searchParams = Astro.url.searchParams;
+const search = searchParams.get("search") || "";
+const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+const limit = 20;
+
+// 3. Build query with filters
+let query = Astro.locals.supabase
+  .from("workout_plans")
+  .select(
+    `
+    id,
+    name,
+    description,
+    created_at,
+    updated_at,
+    last_used_at,
+    plan_exercises(
+      id,
+      plan_exercise_sets(
+        id
+      )
+    )
+  `,
+    { count: "exact" }
+  )
+  .is("deleted_at", null)
+  .order("updated_at", { ascending: false });
+
+// Apply filters
+if (search) {
+  query = query.ilike("name", `%${search}%`);
+}
+
+// Apply pagination
+const from = (page - 1) * limit;
+const to = from + limit - 1;
+query = query.range(from, to);
+
+// 4. Execute query
+const { data: plansRaw, error, count } = await query;
+
+// 5. Handle errors
+if (error) {
+  return Astro.redirect("/error?message=" + encodeURIComponent("Nie udało się załadować planów treningowych"));
+}
+
+// 6. Transform data
+interface PlanRawData {
+  id: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  last_used_at: string | null;
+  plan_exercises: Array<{
+    id: string;
+    plan_exercise_sets: Array<{
+      id: string;
+    }>;
+  }>;
+}
+
+const plans: WorkoutPlanListItemDTO[] = (plansRaw || []).map((p: PlanRawData) => {
+  const exercise_count = p.plan_exercises?.length || 0;
+  const total_sets = p.plan_exercises?.reduce((sum, ex) => sum + (ex.plan_exercise_sets?.length || 0), 0) || 0;
+
+  return {
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    exercise_count,
+    total_sets,
+    last_used_at: p.last_used_at,
+    created_at: p.created_at,
+    updated_at: p.updated_at,
+  };
+});
+
+const totalPlans = count || 0;
+const totalPages = Math.ceil(totalPlans / limit);
 ---
 
 <Layout title="Workout Plans - Gym Track">
@@ -28,74 +114,67 @@ if (!user) {
     </div>
 
     <!-- Filters -->
-    <div class="mb-6 grid gap-4 sm:grid-cols-3">
-      <!-- Search -->
-      <div class="sm:col-span-2">
-        <label for="search" class="sr-only">Szukaj</label>
-        <input
-          type="text"
-          id="search"
-          placeholder="Szukaj planu..."
-          class="w-full rounded-lg border bg-background px-4 py-2"
-        />
-      </div>
+    <WorkoutPlansFilters initialSearch={search} client:load />
 
-      <!-- Status Filter -->
-      <div>
-        <label for="status" class="sr-only">Status</label>
-        <select id="status" class="w-full rounded-lg border bg-background px-4 py-2">
-          <option value="">Wszystkie statusy</option>
-          <option value="active">Aktywne</option>
-          <option value="archived">Zarchiwizowane</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Plans Grid -->
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      <!-- Plan Card Template -->
-      <a
-        href="/workout-plans/[id]"
-        class="group overflow-hidden rounded-lg border bg-card shadow-sm transition-all hover:border-primary hover:shadow-md"
-      >
-        <div class="p-6">
-          <div class="mb-4 flex items-start justify-between">
-            <div>
-              <h3 class="mb-1 text-lg font-semibold group-hover:text-primary">Plan Name</h3>
-              <p class="text-sm text-muted-foreground">X ćwiczeń • Y sesji</p>
-            </div>
-            <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"> Aktywny </span>
-          </div>
-          <p class="mb-4 text-sm text-muted-foreground line-clamp-2">Plan description will be loaded here...</p>
-          <div class="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Utworzono: DD/MM/YYYY</span>
-            <button
-              class="inline-flex items-center gap-1 hover:text-foreground"
-              onclick="event.preventDefault(); event.stopPropagation();"
+    <!-- Plans List -->
+    {
+      plans.length === 0 ? (
+        <div class="rounded-lg border bg-card p-12 text-center shadow-sm">
+          <span class="material-symbols-outlined mb-4 text-6xl text-muted-foreground">list_alt</span>
+          <h3 class="mb-2 text-lg font-semibold">Brak planów treningowych</h3>
+          <p class="mb-6 text-sm text-muted-foreground">
+            {search ? "Nie znaleziono planów pasujących do wyszukiwania" : "Stwórz swój pierwszy plan treningowy"}
+          </p>
+          {!search && (
+            <a
+              href="/workout-plans/new"
+              class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             >
-              <span class="material-symbols-outlined text-base">more_vert</span>
-            </button>
-          </div>
+              <span class="material-symbols-outlined text-base">add</span>
+              Nowy plan treningowy
+            </a>
+          )}
         </div>
-      </a>
-    </div>
+      ) : (
+        <>
+          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {plans.map((plan) => <WorkoutPlanCard plan={plan} client:load />)}
+          </div>
 
-    <!-- Empty State -->
-    <div class="rounded-lg border bg-card p-12 text-center shadow-sm hidden" id="empty-state">
-      <span class="material-symbols-outlined mb-4 text-6xl text-muted-foreground">list_alt</span>
-      <h3 class="mb-2 text-lg font-semibold">Brak planów treningowych</h3>
-      <p class="mb-6 text-sm text-muted-foreground">Stwórz swój pierwszy plan treningowy</p>
-      <a
-        href="/workout-plans/new"
-        class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-      >
-        <span class="material-symbols-outlined text-base">add</span>
-        Nowy plan treningowy
-      </a>
-    </div>
+          <!-- Pagination -->
+          {
+            totalPages > 1 && (
+              <div class="mt-8 flex items-center justify-center gap-2">
+                <button
+                  onclick={`
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('page', '${page - 1}');
+                    window.location.href = '/workout-plans?' + params.toString();
+                  `}
+                  disabled={page === 1}
+                  class="rounded-lg border bg-background px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Poprzednia
+                </button>
+                <span class="text-sm text-muted-foreground">
+                  Strona {page} z {totalPages}
+                </span>
+                <button
+                  onclick={`
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('page', '${page + 1}');
+                    window.location.href = '/workout-plans?' + params.toString();
+                  `}
+                  disabled={page === totalPages}
+                  class="rounded-lg border bg-background px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Następna
+                </button>
+              </div>
+            )
+          }
+        </>
+      )
+    }
   </div>
 </Layout>
-
-<script>
-  console.log("Workout plans page loaded");
-</script>

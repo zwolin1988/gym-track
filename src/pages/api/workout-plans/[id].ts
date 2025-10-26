@@ -197,9 +197,12 @@ export const DELETE: APIRoute = async ({ locals, params }) => {
 
     // 3. Call service to delete workout plan
     try {
+      console.log("DELETE endpoint - planId:", id, "userId:", locals.user.id);
       const deleted = await workoutPlansService.deleteWorkoutPlan(id, locals.supabase, locals.user.id);
+      console.log("DELETE endpoint - deleted result:", deleted);
 
       if (!deleted) {
+        console.log("DELETE endpoint - returning 404 because deleted is false");
         return new Response(
           JSON.stringify({
             error: "Not Found",
