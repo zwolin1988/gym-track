@@ -5,9 +5,7 @@ interface WorkoutPlansFiltersProps {
   initialSearch?: string;
 }
 
-export function WorkoutPlansFilters({
-  initialSearch = "",
-}: WorkoutPlansFiltersProps) {
+export function WorkoutPlansFilters({ initialSearch = "" }: WorkoutPlansFiltersProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [search, setSearch] = useState(initialSearch);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();

@@ -5,9 +5,7 @@ interface WorkoutHistoryFiltersProps {
   initialSearch?: string;
 }
 
-export function WorkoutHistoryFilters({
-  initialSearch = "",
-}: WorkoutHistoryFiltersProps) {
+export function WorkoutHistoryFilters({ initialSearch = "" }: WorkoutHistoryFiltersProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [search, setSearch] = useState(initialSearch);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
@@ -61,7 +59,12 @@ export function WorkoutHistoryFilters({
   }, []);
 
   return (
-    <form ref={formRef} method="get" action="/workouts/history" className="mb-6 rounded-lg border bg-card p-6 shadow-sm">
+    <form
+      ref={formRef}
+      method="get"
+      action="/workouts/history"
+      className="mb-6 rounded-lg border bg-card p-6 shadow-sm"
+    >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* Search Input */}
         <div>

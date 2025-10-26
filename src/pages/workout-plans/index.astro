@@ -19,7 +19,6 @@ const search = searchParams.get("search") || "";
 const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
 const limit = 20;
 
-// 3. Build query with filters
 let query = Astro.locals.supabase
   .from("workout_plans")
   .select(
@@ -68,12 +67,12 @@ interface PlanRawData {
   created_at: string;
   updated_at: string;
   last_used_at: string | null;
-  plan_exercises: Array<{
+  plan_exercises: {
     id: string;
-    plan_exercise_sets: Array<{
+    plan_exercise_sets: {
       id: string;
-    }>;
-  }>;
+    }[];
+  }[];
 }
 
 const plans: WorkoutPlanListItemDTO[] = (plansRaw || []).map((p: PlanRawData) => {
