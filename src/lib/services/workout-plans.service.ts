@@ -75,12 +75,20 @@ export class WorkoutPlansService {
           .select("*", { count: "exact", head: true })
           .eq("plan_id", plan.id);
 
-        // Count total sets
-        const { count: totalSets } = await supabase
-          .from("plan_exercise_sets")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", userId)
-          .in("plan_exercise_id", supabase.from("plan_exercises").select("id").eq("plan_id", plan.id));
+        // Get plan exercise IDs first
+        const { data: planExercises } = await supabase.from("plan_exercises").select("id").eq("plan_id", plan.id);
+
+        const planExerciseIds = planExercises?.map((pe) => pe.id) || [];
+
+        // Count total sets using the IDs
+        let totalSets = 0;
+        if (planExerciseIds.length > 0) {
+          const { count } = await supabase
+            .from("plan_exercise_sets")
+            .select("*", { count: "exact", head: true })
+            .in("plan_exercise_id", planExerciseIds);
+          totalSets = count || 0;
+        }
 
         return {
           id: plan.id,
@@ -90,7 +98,7 @@ export class WorkoutPlansService {
           created_at: plan.created_at,
           updated_at: plan.updated_at,
           exercise_count: exerciseCount || 0,
-          total_sets: totalSets || 0,
+          total_sets: totalSets,
         };
       })
     );
@@ -265,14 +273,22 @@ export class WorkoutPlansService {
       throw new Error("Cannot delete plan with active workout");
     }
 
-    // Soft delete
-    const { error } = await supabase
+    // Soft delete - must also check that deleted_at IS NULL to avoid updating already deleted plans
+    const { data, error } = await supabase
       .from("workout_plans")
       .update({ deleted_at: new Date().toISOString() })
       .eq("id", id)
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .select()
+      .single();
 
-    if (error) {
+    console.log("Delete plan - id:", id, "userId:", userId);
+    console.log("Delete plan - data:", data);
+    console.log("Delete plan - error:", error);
+
+    if (error || !data) {
+      console.error("Failed to delete workout plan. Error:", error, "Data:", data);
       return false;
     }
 

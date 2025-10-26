@@ -1,12 +1,120 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { WorkoutHistoryFilters } from "@/components/workouts/WorkoutHistoryFilters";
+import type { WorkoutListItemDTO } from "@/types";
 
 export const prerender = false;
 
+// 1. Authentication check
 const user = Astro.locals.user;
 
 if (!user) {
   return Astro.redirect("/auth/login");
+}
+
+// 2. Parse query params
+const searchParams = Astro.url.searchParams;
+const search = searchParams.get("search") || "";
+const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+const limit = 20;
+
+// 3. Build query with filters
+let query = Astro.locals.supabase
+  .from("workouts")
+  .select(
+    `
+    id,
+    plan_id,
+    status,
+    started_at,
+    completed_at,
+    workout_plans!inner(name),
+    workout_stats!left(
+      duration_minutes,
+      total_exercises,
+      total_sets,
+      total_reps,
+      max_weight,
+      total_volume
+    )
+  `,
+    { count: "exact" }
+  )
+  .eq("status", "completed")
+  .order("started_at", { ascending: false });
+
+// Apply filters
+if (search) {
+  query = query.ilike("workout_plans.name", `%${search}%`);
+}
+
+// Apply pagination
+const from = (page - 1) * limit;
+const to = from + limit - 1;
+query = query.range(from, to);
+
+// 5. Execute query
+const { data: workoutsRaw, error, count } = await query;
+
+// 6. Handle errors
+if (error) {
+  return Astro.redirect("/error?message=" + encodeURIComponent("Nie udało się załadować historii treningów"));
+}
+
+// 8. Transform data
+interface WorkoutRawData {
+  id: string;
+  plan_id: string;
+  status: string;
+  started_at: string;
+  completed_at: string | null;
+  workout_plans: { name: string };
+  workout_stats: {
+    duration_minutes: number;
+    total_exercises: number;
+    total_sets: number;
+    total_reps: number;
+    max_weight: number | null;
+    total_volume: number;
+  } | null;
+}
+
+const workouts: WorkoutListItemDTO[] = (workoutsRaw || []).map((w: WorkoutRawData) => ({
+  id: w.id,
+  plan_id: w.plan_id,
+  status: w.status,
+  started_at: w.started_at,
+  completed_at: w.completed_at,
+  created_at: w.started_at,
+  updated_at: w.started_at,
+  plan_name: w.workout_plans.name,
+  stats: w.workout_stats || null,
+}));
+
+const totalWorkouts = count || 0;
+const totalPages = Math.ceil(totalWorkouts / limit);
+
+// Helper functions
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("pl-PL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function formatDuration(minutes: number): string {
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
+  }
+  return `${minutes}min`;
+}
+
+function formatNumber(num: number): string {
+  return new Intl.NumberFormat("pl-PL").format(num);
 }
 ---
 
@@ -19,114 +127,110 @@ if (!user) {
     </div>
 
     <!-- Filters -->
-    <div class="mb-6 grid gap-4 sm:grid-cols-4">
-      <!-- Date Range -->
-      <div>
-        <label for="start-date" class="sr-only">Data od</label>
-        <input type="date" id="start-date" class="w-full rounded-lg border bg-background px-4 py-2 text-sm" />
-      </div>
-      <div>
-        <label for="end-date" class="sr-only">Data do</label>
-        <input type="date" id="end-date" class="w-full rounded-lg border bg-background px-4 py-2 text-sm" />
-      </div>
-
-      <!-- Plan Filter -->
-      <div>
-        <label for="plan-filter" class="sr-only">Plan</label>
-        <select id="plan-filter" class="w-full rounded-lg border bg-background px-4 py-2 text-sm">
-          <option value="">Wszystkie plany</option>
-          <!-- Plans will be loaded dynamically -->
-        </select>
-      </div>
-
-      <!-- Status Filter -->
-      <div>
-        <label for="status-filter" class="sr-only">Status</label>
-        <select id="status-filter" class="w-full rounded-lg border bg-background px-4 py-2 text-sm">
-          <option value="">Wszystkie statusy</option>
-          <option value="completed">Ukończone</option>
-          <option value="cancelled">Anulowane</option>
-        </select>
-      </div>
-    </div>
+    <WorkoutHistoryFilters initialSearch={search} client:load />
 
     <!-- Workouts List -->
     <div class="space-y-4">
-      <!-- Workout Card Template -->
-      <a
-        href="/workouts/[id]"
-        class="group block rounded-lg border bg-card p-6 shadow-sm transition-all hover:border-primary hover:shadow-md"
-      >
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex-1">
-            <div class="mb-2 flex items-center gap-2">
-              <h3 class="text-lg font-semibold group-hover:text-primary">Plan Name</h3>
-              <span class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"> Ukończony </span>
-            </div>
-            <div class="mb-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
-              <span class="flex items-center gap-1">
-                <span class="material-symbols-outlined text-base">calendar_today</span>
-                DD/MM/YYYY
-              </span>
-              <span class="flex items-center gap-1">
-                <span class="material-symbols-outlined text-base">schedule</span>
-                45 min
-              </span>
-              <span class="flex items-center gap-1">
-                <span class="material-symbols-outlined text-base">fitness_center</span>
-                X ćwiczeń
-              </span>
-            </div>
-            <div class="flex gap-6 text-sm">
-              <div>
-                <span class="text-muted-foreground">Objętość:</span>
-                <span class="ml-1 font-medium">2,500 kg</span>
-              </div>
-              <div>
-                <span class="text-muted-foreground">Serie:</span>
-                <span class="ml-1 font-medium">15</span>
-              </div>
-              <div>
-                <span class="text-muted-foreground">Powtórzenia:</span>
-                <span class="ml-1 font-medium">180</span>
-              </div>
-            </div>
+      {
+        workouts.length === 0 ? (
+          <div class="rounded-lg border bg-card p-12 text-center shadow-sm">
+            <span class="material-symbols-outlined mb-4 text-6xl text-muted-foreground">history</span>
+            <h3 class="mb-2 text-lg font-semibold">Brak treningów</h3>
+            <p class="mb-6 text-sm text-muted-foreground">Ukończ swój pierwszy trening, aby zobaczyć go tutaj</p>
+            <a
+              href="/workout-plans"
+              class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              <span class="material-symbols-outlined text-base">play_arrow</span>
+              Rozpocznij trening
+            </a>
           </div>
-          <span class="material-symbols-outlined text-muted-foreground group-hover:text-primary"> chevron_right </span>
-        </div>
-      </a>
-    </div>
-
-    <!-- Empty State -->
-    <div class="rounded-lg border bg-card p-12 text-center shadow-sm hidden" id="empty-state">
-      <span class="material-symbols-outlined mb-4 text-6xl text-muted-foreground">history</span>
-      <h3 class="mb-2 text-lg font-semibold">Brak treningów</h3>
-      <p class="mb-6 text-sm text-muted-foreground">Ukończ swój pierwszy trening, aby zobaczyć go tutaj</p>
-      <a
-        href="/workouts/start"
-        class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-      >
-        <span class="material-symbols-outlined text-base">play_arrow</span>
-        Rozpocznij trening
-      </a>
+        ) : (
+          workouts.map((workout) => (
+            <a
+              href={`/workouts/${workout.id}`}
+              class="group block rounded-lg border bg-card p-6 shadow-sm transition-all hover:border-primary hover:shadow-md"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <div class="mb-2 flex items-center gap-2">
+                    <h3 class="text-lg font-semibold group-hover:text-primary">{workout.plan_name}</h3>
+                    <span class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                      Ukończony
+                    </span>
+                  </div>
+                  <div class="mb-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
+                    <span class="flex items-center gap-1">
+                      <span class="material-symbols-outlined text-base">calendar_today</span>
+                      {formatDate(workout.started_at)}
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <span class="material-symbols-outlined text-base">schedule</span>
+                      {workout.stats ? formatDuration(workout.stats.duration_minutes) : "-"}
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <span class="material-symbols-outlined text-base">fitness_center</span>
+                      {workout.stats ? `${workout.stats.total_exercises} ćwiczeń` : "-"}
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <span class="material-symbols-outlined text-base">monitor_weight</span>
+                      {workout.stats ? `${formatNumber(workout.stats.total_volume)} kg` : "-"}
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <span class="material-symbols-outlined text-base">format_list_numbered</span>
+                      {workout.stats ? `${workout.stats.total_sets} serii` : "-"}
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <span class="material-symbols-outlined text-base">repeat</span>
+                      {workout.stats ? `${workout.stats.total_reps} powtórzeń` : "-"}
+                    </span>
+                  </div>
+                </div>
+                <span class="material-symbols-outlined text-muted-foreground group-hover:text-primary">
+                  chevron_right
+                </span>
+              </div>
+            </a>
+          ))
+        )
+      }
     </div>
 
     <!-- Pagination -->
-    <div class="mt-8 flex items-center justify-between">
-      <p class="text-sm text-muted-foreground">
-        Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of
-        <span class="font-medium">50</span> workouts
-      </p>
-      <div class="flex gap-2">
-        <button class="rounded-lg border bg-background px-4 py-2 text-sm hover:bg-muted disabled:opacity-50" disabled>
-          Previous
-        </button>
-        <button class="rounded-lg border bg-background px-4 py-2 text-sm hover:bg-muted"> Next </button>
-      </div>
-    </div>
+    {
+      totalPages > 1 && (
+        <div class="mt-8 flex items-center justify-between">
+          <p class="text-sm text-muted-foreground">
+            Showing <span class="font-medium">{(page - 1) * limit + 1}</span> to{" "}
+            <span class="font-medium">{Math.min(page * limit, totalWorkouts)}</span> of{" "}
+            <span class="font-medium">{totalWorkouts}</span> workouts
+          </p>
+          <div class="flex gap-2">
+            <button
+              onclick={`
+                const params = new URLSearchParams(window.location.search);
+                params.set('page', '${page - 1}');
+                window.location.href = '/workouts/history?' + params.toString();
+              `}
+              disabled={page === 1}
+              class="rounded-lg border bg-background px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              onclick={`
+                const params = new URLSearchParams(window.location.search);
+                params.set('page', '${page + 1}');
+                window.location.href = '/workouts/history?' + params.toString();
+              `}
+              disabled={page === totalPages}
+              class="rounded-lg border bg-background px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )
+    }
   </div>
 </Layout>
-
-<script>
-  console.log("Workout history page loaded"); // Will load workouts from API with filters
-</script>
