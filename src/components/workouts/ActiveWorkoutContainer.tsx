@@ -25,8 +25,8 @@ export function ActiveWorkoutContainer({ initialWorkout }: ActiveWorkoutContaine
     try {
       setIsCompleting(true); // Wyłącz beforeunload
       await completeWorkout();
-      // Przekierowanie do podsumowania
-      window.location.href = `/workouts/${workout.id}/summary`;
+      // Przekierowanie do szczegółów treningu
+      window.location.href = `/workouts/${workout.id}`;
     } catch (err) {
       console.error("Failed to complete workout:", err);
       setIsCompleting(false); // Przywróć beforeunload jeśli błąd

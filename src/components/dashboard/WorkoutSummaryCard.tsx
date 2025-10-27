@@ -32,7 +32,7 @@ function formatDate(isoDate: string): string {
  * Używana w Dashboard, historii treningów i innych miejscach
  */
 export function WorkoutSummaryCard({ stats, planName, date, workoutId, onClick }: WorkoutSummaryCardProps) {
-  const href = workoutId ? `/workouts/${workoutId}/summary` : undefined;
+  const href = workoutId ? `/workouts/${workoutId}` : undefined;
 
   const content = (
     <>

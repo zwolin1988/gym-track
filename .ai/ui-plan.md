@@ -62,12 +62,12 @@ Struktura opiera się na kompozycji widoków (stron Astro) oraz interaktywnych k
   - **Kluczowe komponenty widoku:** `WorkoutTimer`, `SetInput` (hybrydowy), `Checkbox` (44x44px), `Accordion` (dla ćwiczeń), przełącznik trybu "Focus".
   - **UX, dostępność i względy bezpieczeństwa:** Duże cele dotykowe, natychmiastowy feedback wizualny (optimistic updates), ochrona przed przypadkowym zamknięciem strony (`beforeunload`), stan treningu zapisywany w `localStorage`.
 
-- **Nazwa widoku:** Podsumowanie Treningu
-  - **Ścieżka widoku:** `/workouts/[id]/summary`
-  - **Główny cel:** Prezentacja kluczowych statystyk bezpośrednio po zakończeniu treningu.
-  - **Kluczowe informacje do wyświetlenia:** Komunikat gratulacyjny, podsumowanie statystyk (czas, objętość, maks. ciężar itp.), lista wykonanych ćwiczeń.
-  - **Kluczowe komponenty widoku:** `Card` ze statystykami, `Button` ("Wróć do strony głównej").
-  - **UX, dostępność i względy bezpieczeństwa:** Jasna i motywująca prezentacja osiągnięć.
+- **Nazwa widoku:** Szczegóły Treningu
+  - **Ścieżka widoku:** `/workouts/[id]`
+  - **Główny cel:** Prezentacja pełnych szczegółów zakończonego treningu (zaraz po zakończeniu lub z historii).
+  - **Kluczowe informacje do wyświetlenia:** Nazwa planu, status, daty, statystyki (czas, objętość, maks. ciężar, serie, powtórzenia, ćwiczenia), pełna lista wykonanych ćwiczeń z szczegółami serii (planowane vs rzeczywiste).
+  - **Kluczowe komponenty widoku:** `Card` ze statystykami, tabele serii, `Button` ("Zobacz plan", "Powtórz trening", "Powrót do historii").
+  - **UX, dostępność i względy bezpieczeństwa:** Jasna prezentacja wszystkich szczegółów treningu, porównanie wartości planowanych z rzeczywistymi.
 
 - **Nazwa widoku:** Logowanie / Rejestracja
   - **Ścieżka widoku:** `/auth/login`, `/auth/register`
@@ -83,7 +83,7 @@ Struktura opiera się na kompozycji widoków (stron Astro) oraz interaktywnych k
 3.  **Tworzenie Planu:** Użytkownik klika "Utwórz nowy plan" i jest przeprowadzany przez 3-etapowy proces (`/workout-plans/new/step-1` → `.../step-2` → `.../step-3`), kończący się zapisaniem planu i powrotem do listy planów.
 4.  **Rozpoczęcie Treningu:** Na liście planów (`/workout-plans`) użytkownik klika "Rozpocznij trening". Aplikacja tworzy nową sesję treningową i przekierowuje go do `/workouts/active`.
 5.  **Logowanie Treningu:** W widoku `/workouts/active` użytkownik oznacza wykonane serie, modyfikuje ciężary/powtórzenia i dodaje notatki. Zmiany są zapisywane z użyciem optimistic updates.
-6.  **Zakończenie i Podsumowanie:** Po zakończeniu treningu użytkownik jest przekierowywany na stronę podsumowania (`/workouts/[id]/summary`), gdzie widzi swoje statystyki.
+6.  **Zakończenie i Szczegóły:** Po zakończeniu treningu użytkownik jest przekierowywany na stronę szczegółów treningu (`/workouts/[id]`), gdzie widzi pełne statystyki i szczegóły wykonanego treningu.
 7.  **Analiza Postępów:** W dowolnym momencie użytkownik może wejść w `/workouts/history`, aby przejrzeć listę swoich poprzednich treningów i analizować postępy na wykresie na Dashboardzie.
 
 ## 4. Układ i struktura nawigacji

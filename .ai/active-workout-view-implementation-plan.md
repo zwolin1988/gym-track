@@ -238,7 +238,7 @@ export function ActiveWorkoutContainer({ initialWorkout }: ActiveWorkoutContaine
   const handleCompleteWorkout = async () => {
     await completeWorkout();
     // Przekierowanie do podsumowania
-    window.location.href = `/workouts/${workout.id}/summary`;
+    window.location.href = `/workouts/${workout.id}`;
   };
 
   return (
@@ -1878,7 +1878,7 @@ const handleApiError = (error: any) => {
 3. Wywołanie `POST /api/workouts/{id}/complete`
 4. W przypadku sukcesu:
    - Usunięcie stanu z localStorage
-   - Przekierowanie do `/workouts/{id}/summary`
+   - Przekierowanie do `/workouts/{id}`
 5. W przypadku błędu → toast error
 
 **Oczekiwany wynik:**
@@ -2082,7 +2082,7 @@ try {
 try {
   await completeWorkout();
   localStorage.removeItem(ACTIVE_WORKOUT_STORAGE_KEY);
-  window.location.href = `/workouts/${workout.id}/summary`;
+  window.location.href = `/workouts/${workout.id}`;
 } catch (error) {
   toast.error('Nie udało się zakończyć treningu. Spróbuj ponownie.');
   setCompleteDialogOpen(false);

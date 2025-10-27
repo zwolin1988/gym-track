@@ -171,7 +171,7 @@ Gym Track oferuje:
    - Potwierdzenie zakończenia (dialog)
    - Automatyczne zapisanie daty i godziny zakończenia
    - Automatyczne obliczenie statystyk treningu
-   - Przekierowanie do podsumowania treningu
+   - Przekierowanie do widoku szczegółów treningu
 
 ### 3.5. Statystyki i podsumowanie treningu
 
@@ -594,7 +594,7 @@ Kryteria akceptacji:
 
 US-027
 Tytuł: Zakończenie treningu
-Opis: Jako użytkownik, chcę zakończyć trening, aby zapisać wyniki i zobaczyć podsumowanie.
+Opis: Jako użytkownik, chcę zakończyć trening, aby zapisać wyniki i zobaczyć szczegóły.
 Kryteria akceptacji:
 - Przycisk "Zakończ trening" widoczny w interfejsie logowania
 - Dialog potwierdzenia zakończenia: "Czy na pewno chcesz zakończyć trening?"
@@ -602,7 +602,7 @@ Kryteria akceptacji:
   - Data i godzina zakończenia jest zapisywana (automatycznie)
   - Obliczane są statystyki treningu (US-028)
   - Status treningu zmienia się na "Zakończony"
-- Użytkownik jest przekierowywany do widoku podsumowania treningu
+- Użytkownik jest przekierowywany do widoku szczegółów treningu
 - Komunikat toast success: "Trening zakończony"
 
 US-028
@@ -621,10 +621,10 @@ Kryteria akceptacji:
 - Jeśli wszystkie serie są bez ciężaru, objętość = 0
 
 US-029
-Tytuł: Wyświetlanie podsumowania zakończonego treningu
-Opis: Jako użytkownik, chcę zobaczyć podsumowanie swojego treningu zaraz po zakończeniu, aby ocenić swoją wydajność.
+Tytuł: Wyświetlanie szczegółów zakończonego treningu
+Opis: Jako użytkownik, chcę zobaczyć szczegóły swojego treningu zaraz po zakończeniu, aby ocenić swoją wydajność.
 Kryteria akceptacji:
-- Widok podsumowania zawiera:
+- Widok szczegółów zawiera:
   - Nazwa użytego planu treningowego
   - Data i godzina rozpoczęcia
   - Data i godzina zakończenia
@@ -634,9 +634,10 @@ Kryteria akceptacji:
   - Łączna liczba powtórzeń
   - Maksymalny ciężar (kg)
   - Całkowita objętość treningowa (kg)
-- Lista wykonanych ćwiczeń z liczbą serii dla każdego
-- Przycisk "Wróć do strony głównej"
-- Przycisk "Zobacz historię treningów"
+- Lista wykonanych ćwiczeń z szczegółami każdej serii (planowane vs rzeczywiste)
+- Przycisk "Zobacz plan"
+- Przycisk "Powtórz trening"
+- Przycisk "Powrót do historii"
 
 US-030
 Tytuł: Kontynuacja aktywnego treningu

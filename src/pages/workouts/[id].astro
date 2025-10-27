@@ -1,15 +1,201 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import type { WorkoutDetailDTO } from "@/types";
 
 export const prerender = false;
 
+// 1. Authentication check
 const user = Astro.locals.user;
 
 if (!user) {
   return Astro.redirect("/auth/login");
 }
 
+// 2. Get workout ID from params
 const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/workouts/history");
+}
+
+// 3. Fetch workout details from API
+const { data: workoutRaw, error } = await Astro.locals.supabase
+  .from("workouts")
+  .select(
+    `
+    id,
+    plan_id,
+    status,
+    started_at,
+    completed_at,
+    created_at,
+    workout_plans!inner(name),
+    workout_stats!left(
+      duration_minutes,
+      total_exercises,
+      total_sets,
+      total_reps,
+      max_weight,
+      total_volume
+    ),
+    workout_exercises!left(
+      id,
+      exercise_id,
+      order_index,
+      exercises!inner(
+        id,
+        name,
+        image_path,
+        difficulty,
+        categories!inner(name)
+      ),
+      workout_sets(
+        id,
+        planned_reps,
+        planned_weight,
+        actual_reps,
+        actual_weight,
+        completed,
+        note,
+        order_index
+      )
+    )
+  `
+  )
+  .eq("id", id)
+  .single();
+
+// 4. Handle errors
+if (error) {
+  return Astro.redirect("/workouts/history?error=db-error");
+}
+
+if (!workoutRaw) {
+  return Astro.redirect("/workouts/history?error=not-found");
+}
+
+// 5. Transform data to WorkoutDetailDTO
+interface WorkoutSetRaw {
+  id: string;
+  planned_reps: number;
+  planned_weight: number | null;
+  actual_reps: number | null;
+  actual_weight: number | null;
+  completed: boolean;
+  note: string | null;
+  order_index: number;
+}
+
+interface WorkoutExerciseRaw {
+  id: string;
+  exercise_id: string;
+  order_index: number;
+  exercises: {
+    id: string;
+    name: string;
+    image_path: string;
+    categories?: {
+      name: string;
+    };
+  };
+  workout_sets: WorkoutSetRaw[];
+}
+
+const workout: WorkoutDetailDTO = {
+  id: workoutRaw.id,
+  plan_id: workoutRaw.plan_id,
+  status: workoutRaw.status,
+  started_at: workoutRaw.started_at,
+  completed_at: workoutRaw.completed_at,
+  created_at: workoutRaw.created_at,
+  plan_name: workoutRaw.workout_plans.name,
+  stats: workoutRaw.workout_stats || undefined,
+  exercises: (workoutRaw.workout_exercises || [])
+    .filter((we): we is WorkoutExerciseRaw => we && we.exercises !== null)
+    .sort((a: WorkoutExerciseRaw, b: WorkoutExerciseRaw) => a.order_index - b.order_index)
+    .map((we: WorkoutExerciseRaw) => ({
+      id: we.id,
+      exercise_id: we.exercise_id,
+      order_index: we.order_index,
+      exercise: {
+        id: we.exercises.id,
+        name: we.exercises.name,
+        image_path: we.exercises.image_path,
+        category: {
+          name: we.exercises.categories?.name || "Brak kategorii",
+        },
+      },
+      sets: (we.workout_sets || [])
+        .sort((a: WorkoutSetRaw, b: WorkoutSetRaw) => a.order_index - b.order_index)
+        .map((ws: WorkoutSetRaw) => ({
+          id: ws.id,
+          planned_reps: ws.planned_reps,
+          planned_weight: ws.planned_weight,
+          actual_reps: ws.actual_reps,
+          actual_weight: ws.actual_weight,
+          completed: ws.completed,
+          note: ws.note,
+          order_index: ws.order_index,
+        })),
+    })),
+};
+
+// Helper functions
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("pl-PL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function formatTime(dateString: string): string {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("pl-PL", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function formatDuration(minutes: number): string {
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
+  }
+  return `${minutes}min`;
+}
+
+function formatNumber(num: number): string {
+  return new Intl.NumberFormat("pl-PL").format(num);
+}
+
+function getStatusLabel(status: string): string {
+  switch (status) {
+    case "completed":
+      return "Ukończony";
+    case "active":
+      return "Aktywny";
+    case "cancelled":
+      return "Anulowany";
+    default:
+      return status;
+  }
+}
+
+function getStatusColor(status: string): string {
+  switch (status) {
+    case "completed":
+      return "bg-primary/10 text-primary";
+    case "active":
+      return "bg-blue-500/10 text-blue-500";
+    case "cancelled":
+      return "bg-muted text-muted-foreground";
+    default:
+      return "bg-muted text-muted-foreground";
+  }
+}
 ---
 
 <Layout title="Workout Details - Gym Track">
@@ -26,131 +212,172 @@ const { id } = Astro.params;
     <!-- Workout Header -->
     <div class="mb-8">
       <div class="mb-3 flex items-center gap-3">
-        <h1 class="text-3xl font-bold tracking-tight">Plan Name</h1>
-        <span class="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"> Ukończony </span>
+        <h1 class="text-3xl font-bold tracking-tight">{workout.plan_name}</h1>
+        <span class={`rounded-full px-3 py-1 text-sm font-medium ${getStatusColor(workout.status)}`}>
+          {getStatusLabel(workout.status)}
+        </span>
       </div>
       <div class="flex flex-wrap gap-4 text-sm text-muted-foreground">
         <span class="flex items-center gap-1">
           <span class="material-symbols-outlined text-base">calendar_today</span>
-          DD/MM/YYYY HH:MM - HH:MM
+          {formatDate(workout.started_at)} {formatTime(workout.started_at)}
+          {
+            workout.completed_at && (
+              <>
+                {" - "}
+                {formatTime(workout.completed_at)}
+              </>
+            )
+          }
         </span>
-        <span class="flex items-center gap-1">
-          <span class="material-symbols-outlined text-base">schedule</span>
-          45 minut
-        </span>
+        {
+          workout.stats && (
+            <span class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-base">schedule</span>
+              {formatDuration(workout.stats.duration_minutes)}
+            </span>
+          )
+        }
       </div>
     </div>
 
     <!-- Workout Stats Grid -->
-    <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <!-- Total Volume -->
-      <div class="rounded-lg border bg-card p-4 shadow-sm">
-        <p class="text-sm text-muted-foreground">Objętość</p>
-        <p class="mt-1 text-2xl font-bold">2,500 kg</p>
-      </div>
+    {
+      workout.stats && (
+        <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <!-- Total Volume -->
+          <div class="rounded-lg border bg-card p-4 shadow-sm">
+            <p class="text-sm text-muted-foreground">Objętość</p>
+            <p class="mt-1 text-2xl font-bold">{formatNumber(workout.stats.total_volume)} kg</p>
+          </div>
 
-      <!-- Total Sets -->
-      <div class="rounded-lg border bg-card p-4 shadow-sm">
-        <p class="text-sm text-muted-foreground">Serie</p>
-        <p class="mt-1 text-2xl font-bold">15</p>
-      </div>
+          <!-- Total Sets -->
+          <div class="rounded-lg border bg-card p-4 shadow-sm">
+            <p class="text-sm text-muted-foreground">Serie</p>
+            <p class="mt-1 text-2xl font-bold">{workout.stats.total_sets}</p>
+          </div>
 
-      <!-- Total Reps -->
-      <div class="rounded-lg border bg-card p-4 shadow-sm">
-        <p class="text-sm text-muted-foreground">Powtórzenia</p>
-        <p class="mt-1 text-2xl font-bold">180</p>
-      </div>
+          <!-- Total Reps -->
+          <div class="rounded-lg border bg-card p-4 shadow-sm">
+            <p class="text-sm text-muted-foreground">Powtórzenia</p>
+            <p class="mt-1 text-2xl font-bold">{workout.stats.total_reps}</p>
+          </div>
 
-      <!-- Exercises -->
-      <div class="rounded-lg border bg-card p-4 shadow-sm">
-        <p class="text-sm text-muted-foreground">Ćwiczenia</p>
-        <p class="mt-1 text-2xl font-bold">5</p>
-      </div>
-    </div>
-
-    <!-- Workout Note -->
-    <div class="mb-8 rounded-lg border bg-card p-6 shadow-sm hidden" id="workout-note">
-      <h2 class="mb-2 flex items-center gap-2 text-lg font-semibold">
-        <span class="material-symbols-outlined">note</span>
-        Notatka
-      </h2>
-      <p class="text-muted-foreground">Workout note will be displayed here...</p>
-    </div>
+          <!-- Exercises -->
+          <div class="rounded-lg border bg-card p-4 shadow-sm">
+            <p class="text-sm text-muted-foreground">Ćwiczenia</p>
+            <p class="mt-1 text-2xl font-bold">{workout.stats.total_exercises}</p>
+          </div>
+        </div>
+      )
+    }
 
     <!-- Exercises Completed -->
     <div>
       <h2 class="mb-4 text-xl font-semibold">Wykonane ćwiczenia</h2>
       <div class="space-y-6">
-        <!-- Exercise Block Template -->
-        <div class="rounded-lg border bg-card p-6 shadow-sm">
-          <!-- Exercise Header -->
-          <div class="mb-4 flex items-start gap-4">
-            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-              <span class="material-symbols-outlined text-2xl text-primary">exercise</span>
-            </div>
-            <div class="flex-1">
-              <h3 class="mb-1 text-lg font-semibold">Exercise Name</h3>
-              <p class="text-sm text-muted-foreground">Category • Difficulty</p>
-            </div>
-            <a href="/exercises/[exercise_id]" class="text-primary hover:text-primary/80" target="_blank">
-              <span class="material-symbols-outlined">info</span>
-            </a>
-          </div>
+        {
+          workout.exercises.map((workoutExercise) => (
+            <div class="rounded-lg border bg-card p-6 shadow-sm">
+              <!-- Exercise Header -->
+              <div class="mb-4 flex items-start gap-4">
+                <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <span class="material-symbols-outlined text-2xl text-primary">exercise</span>
+                </div>
+                <div class="flex-1">
+                  <h3 class="mb-1 text-lg font-semibold">{workoutExercise.exercise.name}</h3>
+                  <p class="text-sm text-muted-foreground">
+                    {workoutExercise.exercise.category?.name || "Brak kategorii"}
+                  </p>
+                </div>
+                <a
+                  href={`/exercises/${workoutExercise.exercise_id}`}
+                  class="text-primary hover:text-primary/80"
+                  target="_blank"
+                >
+                  <span class="material-symbols-outlined">info</span>
+                </a>
+              </div>
 
-          <!-- Sets Table -->
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="border-b text-sm text-muted-foreground">
-                <tr>
-                  <th class="pb-2 text-left font-medium">Seria</th>
-                  <th class="pb-2 text-center font-medium">Zaplanowane</th>
-                  <th class="pb-2 text-center font-medium">Ciężar (kg)</th>
-                  <th class="pb-2 text-center font-medium">Powtórzenia</th>
-                  <th class="pb-2 text-center font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y">
-                <!-- Set Row Template -->
-                <tr class="text-sm">
-                  <td class="py-3 text-left">1</td>
-                  <td class="py-3 text-center text-muted-foreground">10-12 @ 50kg</td>
-                  <td class="py-3 text-center font-medium">50</td>
-                  <td class="py-3 text-center font-medium">12</td>
-                  <td class="py-3 text-center">
-                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
-                      <span class="material-symbols-outlined text-sm text-primary">check</span>
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+              <!-- Sets Table -->
+              <div class="overflow-x-auto">
+                <table class="w-full">
+                  <thead class="border-b text-sm text-muted-foreground">
+                    <tr>
+                      <th class="pb-2 text-left font-medium">Seria</th>
+                      <th class="pb-2 text-center font-medium">Zaplanowane</th>
+                      <th class="pb-2 text-center font-medium">Ciężar (kg)</th>
+                      <th class="pb-2 text-center font-medium">Powtórzenia</th>
+                      <th class="pb-2 text-center font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y">
+                    {workoutExercise.sets.map((set, index) => (
+                      <tr class="text-sm">
+                        <td class="py-3 text-left">{index + 1}</td>
+                        <td class="py-3 text-center text-muted-foreground">
+                          {set.planned_reps}
+                          {set.planned_weight ? ` @ ${set.planned_weight}kg` : ""}
+                        </td>
+                        <td class="py-3 text-center font-medium">
+                          {set.actual_weight !== null ? set.actual_weight : "-"}
+                        </td>
+                        <td class="py-3 text-center font-medium">
+                          {set.actual_reps !== null ? set.actual_reps : "-"}
+                        </td>
+                        <td class="py-3 text-center">
+                          {set.completed ? (
+                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+                              <span class="material-symbols-outlined text-sm text-primary">check</span>
+                            </span>
+                          ) : (
+                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted">
+                              <span class="material-symbols-outlined text-sm text-muted-foreground">close</span>
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-          <!-- Set Note -->
-          <div class="mt-4 rounded-lg bg-muted/50 p-3 text-sm hidden">
-            <p class="text-xs font-medium text-muted-foreground">Notatka do serii 1:</p>
-            <p class="mt-1">Set note will be displayed here...</p>
-          </div>
-        </div>
+              <!-- Set Notes -->
+              {workoutExercise.sets.some((set) => set.note) && (
+                <div class="mt-4 space-y-2">
+                  {workoutExercise.sets.map(
+                    (set, index) =>
+                      set.note && (
+                        <div class="rounded-lg bg-muted/50 p-3 text-sm">
+                          <p class="text-xs font-medium text-muted-foreground">Notatka do serii {index + 1}:</p>
+                          <p class="mt-1">{set.note}</p>
+                        </div>
+                      )
+                  )}
+                </div>
+              )}
+            </div>
+          ))
+        }
       </div>
     </div>
 
     <!-- Actions -->
     <div class="mt-8 flex gap-4 border-t pt-6">
       <a
-        href={`/workout-plans/${id}`}
+        href={`/workout-plans/${workout.plan_id}`}
         class="inline-flex items-center gap-2 rounded-lg border bg-background px-6 py-3 font-medium hover:bg-muted"
       >
         <span class="material-symbols-outlined text-base">list_alt</span>
         Zobacz plan
       </a>
-      <button
-        id="repeat-workout-btn"
+      <a
+        href={`/workout-plans?start=${workout.plan_id}`}
         class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
       >
         <span class="material-symbols-outlined text-base">refresh</span>
         Powtórz trening
-      </button>
+      </a>
     </div>
   </div>
 </Layout>
