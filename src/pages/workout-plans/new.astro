@@ -1,5 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { CreateWorkoutPlanWizard } from "@/components/workout-plans/CreateWorkoutPlanWizard";
+import type { ExerciseListItemDTO, CategoryDTO } from "@/types";
 
 export const prerender = false;
 
@@ -8,9 +10,55 @@ const user = Astro.locals.user;
 if (!user) {
   return Astro.redirect("/auth/login");
 }
+
+// Pobierz ćwiczenia z kategoriami
+const { data: exercises, error: exercisesError } = await Astro.locals.supabase
+  .from("exercises")
+  .select(
+    `
+    id,
+    name,
+    description,
+    image_path,
+    image_alt,
+    difficulty,
+    category:categories!inner(id, name, slug)
+  `
+  )
+  .order("name");
+
+// Pobierz kategorie dla filtrów
+const { data: categories, error: categoriesError } = await Astro.locals.supabase
+  .from("categories")
+  .select("*")
+  .order("order_index");
+
+if (exercisesError || categoriesError) {
+  console.error("Error fetching data:", exercisesError || categoriesError);
+  return Astro.redirect("/error?message=Nie%20udało%20się%20załadować%20danych");
+}
+
+// Transformuj dane do właściwego typu
+const exercisesData: ExerciseListItemDTO[] =
+  exercises?.map((ex) => ({
+    id: ex.id,
+    name: ex.name,
+    description: ex.description,
+    image_path: ex.image_path,
+    image_alt: ex.image_alt,
+    difficulty: ex.difficulty,
+    created_at: ex.created_at,
+    category: {
+      id: ex.category.id,
+      name: ex.category.name,
+      slug: ex.category.slug,
+    },
+  })) || [];
+
+const categoriesData: CategoryDTO[] = categories || [];
 ---
 
-<Layout title="Create Workout Plan - Gym Track">
+<Layout title="Tworzenie planu treningowego - Gym Track">
   <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
     <!-- Back Button -->
     <a
@@ -24,80 +72,12 @@ if (!user) {
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Nowy plan treningowy</h1>
-      <p class="mt-2 text-muted-foreground">Stwórz spersonalizowany plan treningowy</p>
+      <p class="mt-2 text-muted-foreground">Stwórz spersonalizowany plan treningowy w 3 krokach</p>
     </div>
 
-    <!-- Form -->
-    <div class="mx-auto max-w-2xl">
-      <form id="create-plan-form" class="space-y-6">
-        <!-- Plan Name -->
-        <div>
-          <label for="name" class="mb-2 block text-sm font-medium">
-            Nazwa planu <span class="text-destructive">*</span>
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            placeholder="np. Plan na masę 3x w tygodniu"
-            class="w-full rounded-lg border bg-background px-4 py-2"
-          />
-        </div>
-
-        <!-- Description -->
-        <div>
-          <label for="description" class="mb-2 block text-sm font-medium">
-            Opis <span class="text-muted-foreground">(opcjonalnie)</span>
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            rows="4"
-            placeholder="Opisz cel i charakter planu treningowego..."
-            class="w-full rounded-lg border bg-background px-4 py-2"></textarea>
-        </div>
-
-        <!-- Exercises Section -->
-        <div>
-          <div class="mb-4 flex items-center justify-between">
-            <h2 class="text-lg font-semibold">Ćwiczenia w planie</h2>
-            <button
-              type="button"
-              id="add-exercise-btn"
-              class="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
-            >
-              <span class="material-symbols-outlined text-base">add</span>
-              Dodaj ćwiczenie
-            </button>
-          </div>
-
-          <!-- Exercise List Container -->
-          <div id="exercises-list" class="space-y-4">
-            <!-- Exercises will be added here dynamically -->
-            <div class="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
-              <span class="material-symbols-outlined mb-2 text-4xl text-muted-foreground">exercise</span>
-              <p class="text-sm text-muted-foreground">Dodaj ćwiczenia do swojego planu</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex gap-4 border-t pt-6">
-          <button
-            type="submit"
-            class="flex-1 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            Zapisz plan
-          </button>
-          <a
-            href="/workout-plans"
-            class="inline-flex items-center justify-center rounded-lg border bg-background px-6 py-3 font-medium hover:bg-muted"
-          >
-            Anuluj
-          </a>
-        </div>
-      </form>
+    <!-- Wizard -->
+    <div class="mx-auto max-w-5xl">
+      <CreateWorkoutPlanWizard exercises={exercisesData} categories={categoriesData} client:load />
     </div>
   </div>
 </Layout>

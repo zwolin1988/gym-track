@@ -88,7 +88,7 @@ export default function Navigation({ currentPath = "/", user }: NavigationProps)
               <DropdownMenuLabel>Szybkie akcje</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <a href="/workouts/start" className="flex items-center gap-2 cursor-pointer">
+                <a href="/workout-plans" className="flex items-center gap-2 cursor-pointer">
                   <span className="material-symbols-outlined text-base">play_arrow</span>
                   Rozpocznij trening
                 </a>
@@ -100,12 +100,6 @@ export default function Navigation({ currentPath = "/", user }: NavigationProps)
                 </a>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <a href="/workouts/stats" className="flex items-center gap-2 cursor-pointer">
-                  <span className="material-symbols-outlined text-base">insights</span>
-                  Zobacz statystyki
-                </a>
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 

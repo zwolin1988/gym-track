@@ -29,7 +29,7 @@ export function LastWorkoutSummary({ lastWorkout }: LastWorkoutSummaryProps) {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold text-foreground">Ostatni trening</h2>
         <Button asChild variant="link">
-          <a href={`/workouts/${lastWorkout.id}/summary`}>Zobacz szczegóły →</a>
+          <a href={`/workouts/${lastWorkout.id}`}>Zobacz szczegóły →</a>
         </Button>
       </div>
 
