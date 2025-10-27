@@ -633,6 +633,35 @@ export class WorkoutsService {
   }
 
   /**
+   * Delete workout set
+   */
+  async deleteWorkoutSet(id: string, supabase: SupabaseClient, userId: string) {
+    // Verify set belongs to user and workout is active
+    const { data: workoutSet } = await supabase
+      .from("workout_sets")
+      .select("id, workout_exercise_id, workout_exercises!inner(workout_id, workouts!inner(status))")
+      .eq("id", id)
+      .eq("user_id", userId)
+      .single();
+
+    if (!workoutSet) {
+      return null;
+    }
+
+    if (workoutSet.workout_exercises.workouts.status !== "active") {
+      throw new Error("Workout is not active");
+    }
+
+    const { error } = await supabase.from("workout_sets").delete().eq("id", id).eq("user_id", userId);
+
+    if (error) {
+      throw new Error(`Failed to delete set: ${error.message}`);
+    }
+
+    return { success: true };
+  }
+
+  /**
    * Get workout statistics
    */
   async getWorkoutStats(
@@ -777,10 +806,12 @@ export class WorkoutsService {
     const totalReps = completedSets.reduce((sum, s) => sum + (s.actual_reps || 0), 0);
     const maxWeight = Math.max(...completedSets.map((s) => s.actual_weight || 0));
     const totalVolume = completedSets.reduce((sum, s) => {
-      if (s.actual_weight && s.actual_reps) {
-        return sum + s.actual_weight * s.actual_reps;
-      }
-      return sum;
+      // Użyj actual wartości jeśli istnieją, w przeciwnym razie użyj planned jako fallback
+      const weight = s.actual_weight ?? s.planned_weight ?? 0;
+      const reps = s.actual_reps ?? s.planned_reps ?? 0;
+
+      const volume = weight * reps;
+      return sum + volume;
     }, 0);
 
     // Upsert stats

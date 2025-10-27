@@ -93,23 +93,47 @@ const plans: WorkoutPlanListItemDTO[] = (plansRaw || []).map((p: PlanRawData) =>
 
 const totalPlans = count || 0;
 const totalPages = Math.ceil(totalPlans / limit);
+
+// 7. Check for active workout
+const { data: activeWorkout } = await Astro.locals.supabase
+  .from("workouts")
+  .select("id")
+  .eq("status", "active")
+  .maybeSingle();
+
+const hasActiveWorkout = !!activeWorkout;
 ---
 
 <Layout title="Workout Plans - Gym Track">
   <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-    <!-- Header with Action Button -->
-    <div class="mb-8 flex items-center justify-between">
-      <div>
-        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Plany treningowe</h1>
-        <p class="mt-2 text-muted-foreground">Zarządzaj swoimi planami treningowymi</p>
+    <!-- Header with Action Buttons -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Plany treningowe</h1>
+          <p class="mt-2 text-muted-foreground">Zarządzaj swoimi planami treningowymi</p>
+        </div>
+        <div class="flex gap-3">
+          {
+            hasActiveWorkout && (
+              <a
+                href="/workouts/active"
+                class="inline-flex items-center gap-2 rounded-lg border border-green-600 bg-green-50 px-6 py-3 font-medium text-green-700 hover:bg-green-100"
+              >
+                <span class="material-symbols-outlined text-base">play_circle</span>
+                Kontynuuj trening
+              </a>
+            )
+          }
+          <a
+            href="/workout-plans/new"
+            class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <span class="material-symbols-outlined text-base">add</span>
+            Nowy plan
+          </a>
+        </div>
       </div>
-      <a
-        href="/workout-plans/new"
-        class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
-      >
-        <span class="material-symbols-outlined text-base">add</span>
-        Nowy plan
-      </a>
     </div>
 
     <!-- Filters -->

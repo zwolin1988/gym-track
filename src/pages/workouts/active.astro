@@ -1,5 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { ActiveWorkoutContainer } from "@/components/workouts/ActiveWorkoutContainer";
+import type { WorkoutDetailDTO } from "@/types";
 
 export const prerender = false;
 
@@ -8,131 +10,84 @@ const user = Astro.locals.user;
 if (!user) {
   return Astro.redirect("/auth/login");
 }
+
+// Pobierz aktywny trening z bazy danych
+const { data: activeWorkout, error } = await Astro.locals.supabase
+  .from("workouts")
+  .select(
+    `
+    *,
+    plan:workout_plans!inner(name),
+    exercises:workout_exercises(
+      id,
+      exercise_id,
+      order_index,
+      created_at,
+      exercise:exercises!inner(
+        id,
+        name,
+        image_path
+      ),
+      sets:workout_sets(
+        id,
+        planned_reps,
+        planned_weight,
+        actual_reps,
+        actual_weight,
+        completed,
+        note,
+        order_index,
+        created_at
+      )
+    )
+  `
+  )
+  .eq("status", "active")
+  .single();
+
+// Jeśli nie ma aktywnego treningu, przekieruj do listy planów
+if (error || !activeWorkout) {
+  return Astro.redirect("/workout-plans");
+}
+
+// Transformuj dane do WorkoutDetailDTO
+const workoutData: WorkoutDetailDTO = {
+  id: activeWorkout.id,
+  plan_id: activeWorkout.plan_id,
+  status: activeWorkout.status,
+  started_at: activeWorkout.started_at,
+  completed_at: activeWorkout.completed_at,
+  created_at: activeWorkout.created_at,
+  plan_name: activeWorkout.plan.name,
+  exercises: activeWorkout.exercises
+    .map((ex) => ({
+      id: ex.id,
+      exercise_id: ex.exercise_id,
+      order_index: ex.order_index,
+      created_at: ex.created_at,
+      exercise: {
+        id: ex.exercise.id,
+        name: ex.exercise.name,
+        image_path: ex.exercise.image_path,
+      },
+      sets: ex.sets
+        .sort((a, b) => a.order_index - b.order_index)
+        .map((set) => ({
+          id: set.id,
+          planned_reps: set.planned_reps,
+          planned_weight: set.planned_weight,
+          actual_reps: set.actual_reps,
+          actual_weight: set.actual_weight,
+          completed: set.completed,
+          note: set.note,
+          order_index: set.order_index,
+          created_at: set.created_at,
+        })),
+    }))
+    .sort((a, b) => a.order_index - b.order_index),
+};
 ---
 
-<Layout title="Active Workout - Gym Track">
-  <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-    <!-- Header with Timer -->
-    <div class="mb-6 flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold">Plan Name</h1>
-        <p class="text-sm text-muted-foreground">Rozpoczęto: DD/MM/YYYY HH:MM</p>
-      </div>
-      <div class="text-right">
-        <div class="text-3xl font-bold" id="workout-timer">00:00:00</div>
-        <p class="text-xs text-muted-foreground">Czas treningu</p>
-      </div>
-    </div>
-
-    <!-- Progress Bar -->
-    <div class="mb-6">
-      <div class="mb-2 flex justify-between text-sm">
-        <span class="text-muted-foreground">Postęp</span>
-        <span class="font-medium">0 / 0 ukończonych serie</span>
-      </div>
-      <div class="h-2 overflow-hidden rounded-full bg-muted">
-        <div class="h-full bg-primary transition-all" style="width: 0%"></div>
-      </div>
-    </div>
-
-    <!-- Exercises List -->
-    <div class="space-y-6">
-      <!-- Exercise Block Template -->
-      <div class="rounded-lg border bg-card p-6">
-        <!-- Exercise Header -->
-        <div class="mb-4 flex items-start gap-4">
-          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-            <span class="material-symbols-outlined text-2xl text-primary">exercise</span>
-          </div>
-          <div class="flex-1">
-            <h3 class="mb-1 text-lg font-semibold">Exercise Name</h3>
-            <p class="text-sm text-muted-foreground">Category • X serie</p>
-          </div>
-          <a href="/exercises/[id]" class="text-primary hover:text-primary/80" target="_blank">
-            <span class="material-symbols-outlined">info</span>
-          </a>
-        </div>
-
-        <!-- Sets Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="border-b text-sm text-muted-foreground">
-              <tr>
-                <th class="pb-2 text-left font-medium">Seria</th>
-                <th class="pb-2 text-center font-medium">Zaplanowane</th>
-                <th class="pb-2 text-center font-medium">Ciężar (kg)</th>
-                <th class="pb-2 text-center font-medium">Powtórzenia</th>
-                <th class="pb-2 text-center font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y">
-              <!-- Set Row Template -->
-              <tr class="text-sm">
-                <td class="py-3 text-left">1</td>
-                <td class="py-3 text-center text-muted-foreground">10-12 @ 50kg</td>
-                <td class="py-3 text-center">
-                  <input
-                    type="number"
-                    placeholder="50"
-                    class="w-16 rounded border bg-background px-2 py-1 text-center text-sm"
-                  />
-                </td>
-                <td class="py-3 text-center">
-                  <input
-                    type="number"
-                    placeholder="10"
-                    class="w-16 rounded border bg-background px-2 py-1 text-center text-sm"
-                  />
-                </td>
-                <td class="py-3 text-center">
-                  <button
-                    class="inline-flex h-8 w-8 items-center justify-center rounded-full border hover:bg-muted"
-                    onclick="console.log('Toggle set completion')"
-                  >
-                    <span class="material-symbols-outlined text-base">check</span>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Add Set Button -->
-        <button
-          class="mt-4 inline-flex items-center gap-2 text-sm text-primary hover:underline"
-          onclick="console.log('Add set')"
-        >
-          <span class="material-symbols-outlined text-base">add</span>
-          Dodaj serię
-        </button>
-      </div>
-    </div>
-
-    <!-- Action Buttons (Fixed Bottom) -->
-    <div class="sticky bottom-0 mt-8 flex gap-4 border-t bg-background py-4">
-      <button
-        id="complete-workout-btn"
-        class="flex-1 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
-      >
-        Zakończ trening
-      </button>
-      <button id="cancel-workout-btn" class="rounded-lg border bg-background px-6 py-3 font-medium hover:bg-muted">
-        Anuluj
-      </button>
-    </div>
-
-    <!-- No Active Workout State -->
-    <div class="rounded-lg border bg-card p-12 text-center shadow-sm hidden" id="no-workout">
-      <span class="material-symbols-outlined mb-4 text-6xl text-muted-foreground">fitness_center</span>
-      <h3 class="mb-2 text-lg font-semibold">Brak aktywnego treningu</h3>
-      <p class="mb-6 text-sm text-muted-foreground">Rozpocznij nowy trening</p>
-      <a
-        href="/workouts/start"
-        class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-      >
-        <span class="material-symbols-outlined text-base">play_arrow</span>
-        Rozpocznij trening
-      </a>
-    </div>
-  </div>
+<Layout title="Aktywny Trening - Gym Track">
+  <ActiveWorkoutContainer initialWorkout={workoutData} client:load />
 </Layout>
