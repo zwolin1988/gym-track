@@ -1,5 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { CreateWorkoutPlanWizard } from "@/components/workout-plans/CreateWorkoutPlanWizard";
+import type { ExerciseListItemDTO, CategoryDTO } from "@/types";
 
 export const prerender = false;
 
@@ -10,9 +12,71 @@ if (!user) {
 }
 
 const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/workout-plans");
+}
+
+// Pobierz ćwiczenia z kategoriami
+const { data: exercises, error: exercisesError } = await Astro.locals.supabase
+  .from("exercises")
+  .select(
+    `
+    id,
+    name,
+    description,
+    image_path,
+    image_alt,
+    difficulty,
+    category:categories!inner(id, name, slug)
+  `
+  )
+  .order("name");
+
+// Pobierz kategorie dla filtrów
+const { data: categories, error: categoriesError } = await Astro.locals.supabase
+  .from("categories")
+  .select("*")
+  .order("order_index");
+
+// Sprawdź czy plan istnieje i należy do użytkownika
+const { data: plan, error: planError } = await Astro.locals.supabase
+  .from("workout_plans")
+  .select("id, name, user_id")
+  .eq("id", id)
+  .single();
+
+if (exercisesError || categoriesError || planError || !plan) {
+  console.error("Error fetching data:", exercisesError || categoriesError || planError);
+  return Astro.redirect("/workout-plans?error=Nie%20znaleziono%20planu");
+}
+
+// Sprawdź czy użytkownik jest właścicielem planu
+if (plan.user_id !== user.id) {
+  return Astro.redirect("/workout-plans?error=Brak%20dostępu");
+}
+
+// Transformuj dane do właściwego typu
+const exercisesData: ExerciseListItemDTO[] =
+  exercises?.map((ex: any) => ({
+    id: ex.id,
+    name: ex.name,
+    description: ex.description,
+    image_path: ex.image_path,
+    image_alt: ex.image_alt,
+    difficulty: ex.difficulty,
+    created_at: ex.created_at,
+    category: {
+      id: ex.category.id,
+      name: ex.category.name,
+      slug: ex.category.slug,
+    },
+  })) || [];
+
+const categoriesData: CategoryDTO[] = (categories || []) as CategoryDTO[];
 ---
 
-<Layout title="Edit Workout Plan - Gym Track">
+<Layout title={`Edycja planu: ${plan.name} - Gym Track`}>
   <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
     <!-- Back Button -->
     <a
@@ -25,136 +89,19 @@ const { id } = Astro.params;
 
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Edytuj plan treningowy</h1>
-      <p class="mt-2 text-muted-foreground">Zmodyfikuj szczegóły swojego planu</p>
+      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Edycja planu treningowego</h1>
+      <p class="mt-2 text-muted-foreground">Zaktualizuj szczegóły swojego planu w 3 krokach</p>
     </div>
 
-    <!-- Form -->
-    <div class="mx-auto max-w-2xl">
-      <form id="edit-plan-form" class="space-y-6">
-        <!-- Plan Name -->
-        <div>
-          <label for="name" class="mb-2 block text-sm font-medium">
-            Nazwa planu <span class="text-destructive">*</span>
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            placeholder="np. Plan na masę 3x w tygodniu"
-            value="Plan Name"
-            class="w-full rounded-lg border bg-background px-4 py-2"
-          />
-        </div>
-
-        <!-- Description -->
-        <div>
-          <label for="description" class="mb-2 block text-sm font-medium">
-            Opis <span class="text-muted-foreground">(opcjonalnie)</span>
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            rows="4"
-            placeholder="Opisz cel i charakter planu treningowego..."
-            class="w-full rounded-lg border bg-background px-4 py-2">Plan description will be loaded here...</textarea
-          >
-        </div>
-
-        <!-- Status -->
-        <div>
-          <label for="status" class="mb-2 block text-sm font-medium">Status</label>
-          <select id="status" name="status" class="w-full rounded-lg border bg-background px-4 py-2">
-            <option value="active">Aktywny</option>
-            <option value="archived">Zarchiwizowany</option>
-          </select>
-        </div>
-
-        <!-- Exercises Section -->
-        <div>
-          <div class="mb-4 flex items-center justify-between">
-            <h2 class="text-lg font-semibold">Ćwiczenia w planie</h2>
-            <button
-              type="button"
-              id="add-exercise-btn"
-              class="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
-            >
-              <span class="material-symbols-outlined text-base">add</span>
-              Dodaj ćwiczenie
-            </button>
-          </div>
-
-          <!-- Exercise List Container -->
-          <div id="exercises-list" class="space-y-3">
-            <!-- Exercise Item Template -->
-            <div class="rounded-lg border bg-card p-4">
-              <div class="flex items-start gap-4">
-                <button type="button" class="cursor-grab hover:cursor-grabbing">
-                  <span class="material-symbols-outlined text-muted-foreground">drag_indicator</span>
-                </button>
-                <div class="flex-1">
-                  <div class="mb-2 flex items-center justify-between">
-                    <h3 class="font-semibold">Exercise Name</h3>
-                    <button
-                      type="button"
-                      class="text-destructive hover:text-destructive/80"
-                      onclick="console.log('Remove exercise')"
-                    >
-                      <span class="material-symbols-outlined text-base">close</span>
-                    </button>
-                  </div>
-                  <div class="grid gap-3 sm:grid-cols-3">
-                    <div>
-                      <label class="mb-1 block text-xs text-muted-foreground">Serie</label>
-                      <input
-                        type="number"
-                        value="3"
-                        min="1"
-                        class="w-full rounded border bg-background px-3 py-1 text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label class="mb-1 block text-xs text-muted-foreground">Powtórzenia</label>
-                      <input
-                        type="text"
-                        value="10-12"
-                        placeholder="np. 10-12"
-                        class="w-full rounded border bg-background px-3 py-1 text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label class="mb-1 block text-xs text-muted-foreground">Odpoczynek (s)</label>
-                      <input
-                        type="number"
-                        value="90"
-                        min="0"
-                        class="w-full rounded border bg-background px-3 py-1 text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex gap-4 border-t pt-6">
-          <button
-            type="submit"
-            class="flex-1 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            Zapisz zmiany
-          </button>
-          <a
-            href={`/workout-plans/${id}`}
-            class="inline-flex items-center justify-center rounded-lg border bg-background px-6 py-3 font-medium hover:bg-muted"
-          >
-            Anuluj
-          </a>
-        </div>
-      </form>
+    <!-- Wizard -->
+    <div class="mx-auto max-w-5xl">
+      <CreateWorkoutPlanWizard
+        exercises={exercisesData}
+        categories={categoriesData}
+        editMode={true}
+        existingPlanId={id}
+        client:load
+      />
     </div>
   </div>
 </Layout>

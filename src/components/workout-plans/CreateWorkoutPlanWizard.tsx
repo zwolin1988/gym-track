@@ -91,7 +91,13 @@ export function CreateWorkoutPlanWizard({
             </Button>
           ) : (
             <Button onClick={submitPlan} disabled={!canGoNext || isLoading}>
-              {isLoading ? "Tworzenie planu..." : "Utwórz plan"}
+              {isLoading
+                ? editMode
+                  ? "Aktualizowanie planu..."
+                  : "Tworzenie planu..."
+                : editMode
+                  ? "Zaktualizuj plan"
+                  : "Utwórz plan"}
             </Button>
           )}
         </div>
