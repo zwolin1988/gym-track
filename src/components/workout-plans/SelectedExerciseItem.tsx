@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, X, Dumbbell } from "lucide-react";
+import { GripVertical, Trash2, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -84,7 +84,7 @@ export function SelectedExerciseItem({ exercise, index, onRemove }: SelectedExer
         onClick={onRemove}
         className="text-destructive hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
       >
-        <X className="w-4 h-4" />
+        <Trash2 className="w-4 h-4" />
       </Button>
     </li>
   );

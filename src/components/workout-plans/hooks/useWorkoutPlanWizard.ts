@@ -17,9 +17,25 @@ const STORAGE_KEY = "workout-plan-wizard-state";
  * - Walidację na każdym etapie
  * - Persystencję do localStorage
  * - Komunikację z API
+ * - Tryb edycji (editMode)
  */
-export function useWorkoutPlanWizard({ exercises }: CreateWorkoutPlanWizardProps): UseWorkoutPlanWizardReturn {
+export function useWorkoutPlanWizard({
+  exercises,
+  editMode = false,
+  existingPlanId,
+}: CreateWorkoutPlanWizardProps): UseWorkoutPlanWizardReturn {
   const [state, setState] = useState<WizardState>(() => {
+    // W trybie edycji nie ładuj z localStorage
+    if (editMode) {
+      return {
+        step: 1,
+        planName: "",
+        planDescription: null,
+        selectedExercises: [],
+        planId: existingPlanId || null,
+      };
+    }
+
     // Załaduj stan z localStorage lub utwórz nowy
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -43,13 +59,65 @@ export function useWorkoutPlanWizard({ exercises }: CreateWorkoutPlanWizardProps
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
-  // Zapisz stan do localStorage przy każdej zmianie
+  // Załaduj dane istniejącego planu w trybie edycji
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (editMode && existingPlanId && !initialLoadDone) {
+      setIsLoading(true);
+      const loadPlan = async () => {
+        try {
+          // Pobierz plan z API
+          const response = await fetch(`/api/workout-plans/${existingPlanId}`);
+          if (!response.ok) {
+            throw new Error("Nie udało się załadować planu");
+          }
+
+          const { data: plan } = await response.json();
+
+          // Przekształć dane do formatu SelectedExercise
+          const selectedExercises: SelectedExercise[] = plan.exercises.map((planExercise: any) => {
+            const exercise = exercises.find((e) => e.id === planExercise.exercise_id);
+            return {
+              exerciseId: planExercise.exercise_id,
+              exercise: exercise!,
+              orderIndex: planExercise.order_index,
+              planExerciseId: planExercise.id,
+              sets: planExercise.sets.map((set: any) => ({
+                reps: set.reps,
+                weight: set.weight,
+                orderIndex: set.order_index,
+                id: set.id,
+              })),
+            };
+          });
+
+          setState({
+            step: 1,
+            planName: plan.name,
+            planDescription: plan.description,
+            selectedExercises,
+            planId: existingPlanId,
+          });
+
+          setInitialLoadDone(true);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Wystąpił błąd podczas ładowania planu");
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      loadPlan();
+    }
+  }, [editMode, existingPlanId, exercises, initialLoadDone]);
+
+  // Zapisz stan do localStorage przy każdej zmianie (tylko w trybie tworzenia)
+  useEffect(() => {
+    if (!editMode && typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
-  }, [state]);
+  }, [state, editMode]);
 
   // Ostrzeżenie przed opuszczeniem strony
   useEffect(() => {
@@ -120,25 +188,45 @@ export function useWorkoutPlanWizard({ exercises }: CreateWorkoutPlanWizardProps
     if (state.step === 1) {
       if (!validateStep1()) return;
 
-      // Utwórz plan w API
+      // W trybie edycji aktualizuj plan, w trybie tworzenia utwórz nowy
       setIsLoading(true);
       try {
-        const response = await fetch("/api/workout-plans", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: state.planName,
-            description: state.planDescription,
-          }),
-        });
+        if (editMode && existingPlanId) {
+          // Aktualizuj istniejący plan
+          const response = await fetch(`/api/workout-plans/${existingPlanId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: state.planName,
+              description: state.planDescription,
+            }),
+          });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Nie udało się utworzyć planu");
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Nie udało się zaktualizować planu");
+          }
+
+          setState((prev) => ({ ...prev, step: 2 }));
+        } else {
+          // Utwórz nowy plan
+          const response = await fetch("/api/workout-plans", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: state.planName,
+              description: state.planDescription,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Nie udało się utworzyć planu");
+          }
+
+          const { data: plan } = await response.json();
+          setState((prev) => ({ ...prev, planId: plan.id, step: 2 }));
         }
-
-        const { data: plan } = await response.json();
-        setState((prev) => ({ ...prev, planId: plan.id, step: 2 }));
       } catch (err) {
         setError(err instanceof Error ? err.message : "Wystąpił błąd");
       } finally {
@@ -154,6 +242,25 @@ export function useWorkoutPlanWizard({ exercises }: CreateWorkoutPlanWizardProps
           throw new Error("Plan ID is missing");
         }
         const planId = state.planId;
+
+        if (editMode) {
+          // W trybie edycji: usuń wszystkie stare ćwiczenia i dodaj nowe
+          // To uproszczone podejście - można by zoptymalizować, żeby tylko aktualizować różnice
+
+          // Usuń wszystkie ćwiczenia bez planExerciseId (nowo dodane nie muszą być usuwane)
+          // i te, które mają planExerciseId ale zostały usunięte przez użytkownika
+          const deletePromises = state.selectedExercises
+            .filter((ex) => ex.planExerciseId)
+            .map((ex) =>
+              fetch(`/api/plan-exercises/${ex.planExerciseId}`, {
+                method: "DELETE",
+              })
+            );
+
+          await Promise.all(deletePromises);
+        }
+
+        // Dodaj wszystkie ćwiczenia (nowe lub ponownie dodane)
         const planExercisesPromises = state.selectedExercises.map((exercise, index) =>
           fetch(`/api/workout-plans/${planId}/exercises`, {
             method: "POST",
@@ -202,6 +309,21 @@ export function useWorkoutPlanWizard({ exercises }: CreateWorkoutPlanWizardProps
 
     setIsLoading(true);
     try {
+      if (editMode) {
+        // W trybie edycji: usuń wszystkie stare serie i dodaj nowe
+        const deletePromises = state.selectedExercises.flatMap((exercise) =>
+          exercise.sets
+            .filter((set) => set.id !== null)
+            .map((set) =>
+              fetch(`/api/plan-exercise-sets/${set.id}`, {
+                method: "DELETE",
+              })
+            )
+        );
+
+        await Promise.all(deletePromises);
+      }
+
       // Dodaj serie dla każdego ćwiczenia
       const setsPromises = state.selectedExercises.flatMap((exercise) =>
         exercise.sets.map((set, index) =>
@@ -222,13 +344,17 @@ export function useWorkoutPlanWizard({ exercises }: CreateWorkoutPlanWizardProps
 
       await Promise.all(setsPromises);
 
-      // Wyczyść localStorage
-      if (typeof window !== "undefined") {
+      // Wyczyść localStorage (tylko w trybie tworzenia)
+      if (!editMode && typeof window !== "undefined") {
         localStorage.removeItem(STORAGE_KEY);
       }
 
-      // Przekieruj do listy planów z komunikatem sukcesu
-      window.location.href = `/workout-plans?success=Plan%20utworzony%20pomyślnie`;
+      // Przekieruj do właściwej strony
+      if (editMode) {
+        window.location.href = `/workout-plans/${state.planId}?success=Plan%20zaktualizowany%20pomyślnie`;
+      } else {
+        window.location.href = `/workout-plans?success=Plan%20utworzony%20pomyślnie`;
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Wystąpił błąd");
     } finally {
