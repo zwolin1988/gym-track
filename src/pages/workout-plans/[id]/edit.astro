@@ -58,7 +58,7 @@ if (plan.user_id !== user.id) {
 
 // Transformuj dane do właściwego typu
 const exercisesData: ExerciseListItemDTO[] =
-  exercises?.map((ex: any) => ({
+  exercises?.map((ex) => ({
     id: ex.id,
     name: ex.name,
     description: ex.description,

@@ -76,21 +76,31 @@ export function useWorkoutPlanWizard({
           const { data: plan } = await response.json();
 
           // Przekształć dane do formatu SelectedExercise
-          const selectedExercises: SelectedExercise[] = plan.exercises.map((planExercise: any) => {
-            const exercise = exercises.find((e) => e.id === planExercise.exercise_id);
-            return {
-              exerciseId: planExercise.exercise_id,
-              exercise: exercise!,
-              orderIndex: planExercise.order_index,
-              planExerciseId: planExercise.id,
-              sets: planExercise.sets.map((set: any) => ({
-                reps: set.reps,
-                weight: set.weight,
-                orderIndex: set.order_index,
-                id: set.id,
-              })),
-            };
-          });
+          const selectedExercises: SelectedExercise[] = plan.exercises.map(
+            (planExercise: {
+              exercise_id: string;
+              order_index: number;
+              id: string;
+              sets: { reps: number; weight: number | null; order_index: number; id: string }[];
+            }) => {
+              const exercise = exercises.find((e) => e.id === planExercise.exercise_id);
+              if (!exercise) {
+                throw new Error(`Exercise with id ${planExercise.exercise_id} not found`);
+              }
+              return {
+                exerciseId: planExercise.exercise_id,
+                exercise,
+                orderIndex: planExercise.order_index,
+                planExerciseId: planExercise.id,
+                sets: planExercise.sets.map((set) => ({
+                  reps: set.reps,
+                  weight: set.weight,
+                  orderIndex: set.order_index,
+                  id: set.id,
+                })),
+              };
+            }
+          );
 
           setState({
             step: 1,

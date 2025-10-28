@@ -76,9 +76,27 @@ Gym Track is a web application designed to help fitness enthusiasts systematical
 
 ### Testing
 
-- **[Vitest 2.x](https://vitest.dev/)** - Fast unit and integration testing framework
-- **[React Testing Library 16.x](https://testing-library.com/react)** - User-centric component testing
-- **[Playwright 1.50+](https://playwright.dev/)** - Modern end-to-end testing with cross-browser support
+#### Unit & Integration Testing
+- **[Vitest 2.x](https://vitest.dev/)** - Fast unit and integration testing framework with:
+  - Native TypeScript and ESM support
+  - Hot Module Reload for tests
+  - Code coverage reporting (c8)
+  - Jest-compatible API
+- **[React Testing Library 16.x](https://testing-library.com/react)** - User-centric component testing with:
+  - Semantic queries (`getByRole`, `getByLabelText`)
+  - User event simulation
+  - Async utilities (`waitFor`, `findBy*`)
+  - Custom matchers (`@testing-library/jest-dom`)
+
+#### End-to-End Testing
+- **[Playwright 1.50+](https://playwright.dev/)** - Modern E2E testing framework with:
+  - Cross-browser support (Chromium, Firefox, WebKit/Safari)
+  - Auto-wait for elements and network requests
+  - Screenshot and video recording on failures
+  - Network interception and mocking
+  - Mobile device emulation
+  - Parallel test execution
+  - Built-in test generator (codegen)
 
 ### DevOps & CI/CD
 
@@ -372,9 +390,24 @@ For detailed testing instructions, see [.ai/exercises-testing-guide.md](.ai/exer
 - Loading states
 
 ✅ **Testing & Quality**
-- Minimum 1 end-to-end test (Playwright)
-- CI/CD pipeline
-- Code quality tools (ESLint, Prettier)
+- **Unit Tests** (Vitest):
+  - Validation schemas (Zod)
+  - Utility functions
+  - Custom React hooks
+  - Service layer logic
+- **Integration Tests** (Vitest + React Testing Library):
+  - API endpoint testing
+  - Component integration with APIs
+  - Form validation flows
+- **E2E Tests** (Playwright):
+  - Critical user flows (authentication, workout creation, workout execution)
+  - Cross-browser testing (Chrome, Firefox, Safari)
+  - Mobile and desktop viewports
+- **Code Quality**:
+  - ESLint for code linting
+  - Prettier for code formatting
+  - Husky pre-commit hooks
+  - CI/CD pipeline with automated testing
 
 ### Future Features (Out of Scope)
 
