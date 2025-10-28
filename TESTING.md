@@ -146,6 +146,18 @@ global.fetch = vi.fn().mockResolvedValue({
 
 ## Testy E2E (Playwright)
 
+### Konfiguracja użytkownika testowego
+
+Niektóre testy E2E wymagają użytkownika testowego w bazie danych. Dodaj dane testowe do `.env`:
+
+```bash
+# E2E Test User Credentials
+TEST_USER_EMAIL=your-test-user@example.com
+TEST_USER_PASSWORD=your-secure-password
+```
+
+**Więcej informacji:** Zobacz `e2e/README.md`
+
 ### Uruchamianie testów E2E
 
 ```bash

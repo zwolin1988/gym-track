@@ -16,7 +16,7 @@ export class DashboardPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.welcomeMessage = page.getByRole("heading", { name: /witaj|welcome|dashboard/i });
+    this.welcomeMessage = page.getByRole("heading", { name: /witaj|welcome|Szybkie akcje/i });
     this.createPlanButton = page.getByRole("button", { name: /stwórz plan|create plan/i });
     this.startWorkoutButton = page.getByRole("button", { name: /rozpocznij trening|start workout/i });
     this.activeWorkoutBanner = page.getByText(/aktywny trening|active workout/i);

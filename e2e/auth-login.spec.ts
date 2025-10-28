@@ -24,11 +24,13 @@ test.describe("Authentication - Login Flow", () => {
     await loginPage.goto();
   });
 
-  test.skip("TC-AUTH-003: should login successfully with valid credentials", async ({ page }) => {
+  test("TC-AUTH-003: should login successfully with valid credentials", async ({ page }) => {
     // SKIPPED: This test requires a valid user account in the database
     // To run this test:
-    // 1. Create a user account with email: demo@demo.pl, password: demo1234
-    // 2. Or update TEST_USERS.valid in e2e/fixtures/auth.ts with existing credentials
+    // 1. Create a test user in Supabase
+    // 2. Set TEST_USER_EMAIL and TEST_USER_PASSWORD in .env file
+    // 3. Remove .skip() from this test
+    // See e2e/README.md for detailed instructions
 
     // Arrange - test data from fixtures
     const { email, password } = TEST_USERS.valid;
@@ -38,7 +40,7 @@ test.describe("Authentication - Login Flow", () => {
 
     // Assert - verify redirect to dashboard
     await expect(page).toHaveURL(/.*dashboard/);
-    await expect(dashboardPage.welcomeMessage).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Szybkie akcje", level: 2 })).toBeVisible();
   });
 
   test("TC-AUTH-004: should show error with invalid credentials", async ({ page }) => {
@@ -97,9 +99,9 @@ test.describe("Authentication - Login Flow", () => {
 });
 
 test.describe("Authentication - Session Management", () => {
-  test.skip("should persist session after page reload", async ({ page }) => {
+  test("should persist session after page reload", async ({ page }) => {
     // SKIPPED: This test requires a valid user account in the database
-    // See TC-AUTH-003 for setup instructions
+    // See TC-AUTH-003 above for setup instructions
 
     // Arrange - login first
     const loginPage = new LoginPage(page);
@@ -116,9 +118,9 @@ test.describe("Authentication - Session Management", () => {
     await expect(page).toHaveURL(/.*dashboard/);
   });
 
-  test.skip("should logout successfully", async ({ page }) => {
+  test("should logout successfully", async ({ page }) => {
     // SKIPPED: This test requires a valid user account in the database
-    // See TC-AUTH-003 for setup instructions
+    // See TC-AUTH-003 above for setup instructions
 
     // Arrange - login first
     const loginPage = new LoginPage(page);

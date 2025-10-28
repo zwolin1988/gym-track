@@ -2,12 +2,18 @@
  * E2E Test Fixtures - Authentication
  *
  * Provides test data and helper functions for authentication tests
+ *
+ * IMPORTANT: Valid test user credentials are loaded from environment variables:
+ * - TEST_USER_EMAIL
+ * - TEST_USER_PASSWORD
+ *
+ * Set these in your .env file (see .env.example)
  */
 
 export const TEST_USERS = {
   valid: {
-    email: "demo@demo.pl",
-    password: "demo1234",
+    email: process.env.TEST_USER_EMAIL || "test@example.com",
+    password: process.env.TEST_USER_PASSWORD || "test1234",
   },
   newUser: {
     email: `test-${Date.now()}@example.com`,

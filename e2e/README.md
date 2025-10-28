@@ -8,27 +8,35 @@ Ten folder zawiera testy end-to-end dla projektu Gym Track.
 
 Niektóre testy wymagają istniejącego użytkownika w bazie danych. Aby uruchomić pełny zestaw testów:
 
-1. **Utwórz użytkownika testowego w Supabase:**
-   - Email: `demo@demo.pl`
-   - Hasło: `demo1234`
+1. **Utwórz użytkownika testowego w Supabase**
+   - Zaloguj się do panelu Supabase
+   - Utwórz nowego użytkownika w sekcji Authentication
 
-2. **Lub zaktualizuj dane testowe** w `e2e/fixtures/auth.ts`:
-   ```typescript
-   export const TEST_USERS = {
-     valid: {
-       email: "twoj-email@example.com",  // Zmień na istniejące dane
-       password: "twoje-haslo",
-     },
-     // ...
-   };
+2. **Dodaj dane testowe do pliku `.env`**
+
+   Skopiuj `.env.example` do `.env` (jeśli jeszcze nie istnieje):
+   ```bash
+   cp .env.example .env
    ```
+
+   Dodaj następujące zmienne środowiskowe do pliku `.env`:
+   ```bash
+   # E2E Test User Credentials
+   TEST_USER_EMAIL=your-test-user@example.com
+   TEST_USER_PASSWORD=your-secure-password
+   ```
+
+   **⚠️ WAŻNE:**
+   - Plik `.env` jest w `.gitignore` - dane logowania NIE będą commitowane do repozytorium
+   - Nigdy nie commituj prawdziwych danych logowania do `e2e/fixtures/auth.ts`
+   - Użyj silnego hasła dla użytkownika testowego
 
 3. **Testy wymagające użytkownika (obecnie pominięte przez `.skip()`):**
    - `TC-AUTH-003: should login successfully with valid credentials`
    - `should persist session after page reload`
    - `should logout successfully`
 
-Aby włączyć te testy, usuń `.skip` z odpowiednich linii w `e2e/auth-login.spec.ts`.
+4. **Włącz testy** usuwając `.skip()` z odpowiednich linii w `e2e/auth-login.spec.ts`
 
 ## Struktura
 
