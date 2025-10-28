@@ -12,6 +12,7 @@ export class DashboardPage {
   readonly createPlanButton: Locator;
   readonly startWorkoutButton: Locator;
   readonly activeWorkoutBanner: Locator;
+  readonly userAvatarButton: Locator;
   readonly logoutButton: Locator;
 
   constructor(page: Page) {
@@ -20,7 +21,11 @@ export class DashboardPage {
     this.createPlanButton = page.getByRole("button", { name: /stwórz plan|create plan/i });
     this.startWorkoutButton = page.getByRole("button", { name: /rozpocznij trening|start workout/i });
     this.activeWorkoutBanner = page.getByText(/aktywny trening|active workout/i);
-    this.logoutButton = page.getByRole("button", { name: /wyloguj|logout/i });
+    // Avatar button that triggers the dropdown menu
+    // Using text content from AvatarFallback (user initials)
+    this.userAvatarButton = page.locator("button.rounded-full").first();
+    // Logout button inside the dropdown menu (contains "Wyloguj" text in span)
+    this.logoutButton = page.locator('button:has-text("Wyloguj")');
   }
 
   async goto() {
@@ -34,5 +39,15 @@ export class DashboardPage {
 
   async hasWelcomeMessage() {
     return this.welcomeMessage.isVisible();
+  }
+
+  async logout() {
+    // Wait for avatar button to be visible (ensures user is logged in)
+    await this.userAvatarButton.waitFor({ state: "visible" });
+    // Click avatar to open dropdown menu
+    await this.userAvatarButton.click();
+    // Wait for logout button to be visible in dropdown, then click
+    await this.logoutButton.waitFor({ state: "visible" });
+    await this.logoutButton.click();
   }
 }

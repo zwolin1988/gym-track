@@ -3,17 +3,20 @@
  *
  * Provides test data and helper functions for authentication tests
  *
- * IMPORTANT: Valid test user credentials are loaded from environment variables:
- * - TEST_USER_EMAIL
- * - TEST_USER_PASSWORD
+ * IMPORTANT: Valid test user credentials are loaded from .env.test file:
+ * - E2E_USERNAME (email)
+ * - E2E_PASSWORD
+ * - E2E_USERNAME_ID (optional, for future use)
  *
- * Set these in your .env file (see .env.example)
+ * This allows E2E tests to use a dedicated test database in Supabase
+ * Set these in your .env.test file (see .env.test.example)
  */
 
 export const TEST_USERS = {
   valid: {
-    email: process.env.TEST_USER_EMAIL || "test@example.com",
-    password: process.env.TEST_USER_PASSWORD || "test1234",
+    email: process.env.E2E_USERNAME || "test@example.com",
+    password: process.env.E2E_PASSWORD || "test1234",
+    userId: process.env.E2E_USERNAME_ID, // Optional: for direct DB operations
   },
   newUser: {
     email: `test-${Date.now()}@example.com`,

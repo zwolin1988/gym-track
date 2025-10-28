@@ -29,8 +29,10 @@ coverage/
 playwright-report/
 test-results/
 playwright/.cache/
+playwright/.auth/
 db-mocks/99999999999998_cleanup_test_data.sql
 .gitignore
 db-mocks/99999999999999_seed_test_data.sql
 supabase/migrations/20251024120000_fix_workout_plans_update_policy.sql
 supabase/migrations/20251024120001_add_soft_delete_policy.sql
+.env.test

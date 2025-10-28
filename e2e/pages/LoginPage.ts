@@ -39,6 +39,21 @@ export class LoginPage {
     await this.submitButton.click();
   }
 
+  async loginAndWaitForNavigation(email: string, password: string) {
+    // First fill the form fields
+    await this.emailInput.fill(email);
+    await this.passwordInput.fill(password);
+
+    // Then click and wait for navigation
+    // This handles the async login flow with 500ms delay before redirect
+    const [response] = await Promise.all([
+      this.page.waitForNavigation({ url: /.*dashboard/, timeout: 15000 }),
+      this.submitButton.click(),
+    ]);
+
+    return response;
+  }
+
   async waitForErrorMessage() {
     await this.errorMessage.waitFor({ state: "visible" });
     return this.errorMessage.textContent();
