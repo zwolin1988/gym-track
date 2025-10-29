@@ -5,7 +5,7 @@
  * Uses locators for resilient element selection (per cursor rules)
  */
 
-import type { Page, Locator } from "@playwright/test";
+import { expect, type Page, type Locator } from "@playwright/test";
 
 export class LoginPage {
   readonly page: Page;
@@ -40,18 +40,35 @@ export class LoginPage {
   }
 
   async loginAndWaitForNavigation(email: string, password: string) {
-    // First fill the form fields
-    await this.emailInput.fill(email);
-    await this.passwordInput.fill(password);
+    // Wait for the form to be fully loaded and interactive
+    await this.emailInput.waitFor({ state: "visible" });
+    await this.passwordInput.waitFor({ state: "visible" });
 
-    // Then click and wait for navigation
-    // This handles the async login flow with 500ms delay before redirect
-    const [response] = await Promise.all([
-      this.page.waitForNavigation({ url: /.*dashboard/, timeout: 15000 }),
-      this.submitButton.click(),
-    ]);
+    // Focus on email input first
+    await this.emailInput.click();
+    await this.page.waitForTimeout(100);
 
-    return response;
+    // Type email character by character with delay
+    await this.emailInput.pressSequentially(email, { delay: 50 });
+
+    // Verify email was entered
+    await expect(this.emailInput).toHaveValue(email);
+
+    // Focus on password input
+    await this.passwordInput.click();
+    await this.page.waitForTimeout(100);
+
+    // Type password character by character with delay
+    await this.passwordInput.pressSequentially(password, { delay: 50 });
+
+    // Verify password was entered
+    await expect(this.passwordInput).toHaveValue(password);
+
+    // Wait a bit for React state to sync
+    await this.page.waitForTimeout(300);
+
+    // Click submit button and wait for navigation
+    await Promise.all([this.page.waitForURL(/.*dashboard/, { timeout: 15000 }), this.submitButton.click()]);
   }
 
   async waitForErrorMessage() {

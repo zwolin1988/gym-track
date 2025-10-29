@@ -106,6 +106,7 @@ export function SetInputRow({
 
           <input
             type="number"
+            data-testid={`set-${setNumber}-reps`}
             value={reps}
             onChange={handleRepsInputChange}
             min="1"
@@ -144,6 +145,7 @@ export function SetInputRow({
 
           <input
             type="number"
+            data-testid={`set-${setNumber}-weight`}
             value={weight ?? ""}
             onChange={handleWeightInputChange}
             min="0"

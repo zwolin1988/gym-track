@@ -38,7 +38,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const pathname = context.url.pathname;
 
   // 4. Define protected paths (require authentication)
-  const protectedPaths = ["/dashboard", "/plans", "/workouts", "/history", "/profile"];
+  const protectedPaths = ["/dashboard", "/plans", "/workouts", "/workout-plans", "/history", "/profile"];
 
   // 5. Define auth paths (login, register - should redirect if already logged in)
   const authPaths = ["/auth/login", "/auth/register"];

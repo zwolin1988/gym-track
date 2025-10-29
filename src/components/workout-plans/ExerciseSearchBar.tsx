@@ -33,6 +33,7 @@ export function ExerciseSearchBar({ value, onChange, placeholder = "Szukaj ćwic
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       <Input
         type="text"
+        data-testid="exercise-search-input"
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         placeholder={placeholder}

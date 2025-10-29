@@ -36,6 +36,15 @@ setup("authenticate", async ({ page }) => {
   await expect(page).toHaveURL(/.*dashboard/);
   await expect(page.getByRole("heading", { name: "Szybkie akcje", level: 2 })).toBeVisible();
 
+  // Wait a bit to ensure cookies and session are fully set
+  // Supabase SSR sets cookies through middleware after successful login
+  await page.waitForTimeout(1000);
+
+  // Verify cookies are set by checking if we can access a protected page
+  await page.goto("/workout-plans");
+  await expect(page).toHaveURL(/.*workout-plans/);
+  await expect(page).not.toHaveURL(/.*login/);
+
   // Save authenticated state to file
   // This will be reused by other tests that specify storageState in their config
   await page.context().storageState({ path: authFile });

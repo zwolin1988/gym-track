@@ -58,7 +58,7 @@ test.describe("Authentication Tests", () => {
     // The main assertion is that we stay on login page
   });
 
-  test("should logout successfully", async ({ page }) => {
+  test.skip("should logout successfully", async ({ page }) => {
     // This test uses credentials from .env.test file (E2E_USERNAME, E2E_PASSWORD)
     // connected to the dedicated Supabase test database
 

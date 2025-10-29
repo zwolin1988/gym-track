@@ -54,7 +54,7 @@ export function ExerciseSetsEditor({ sets, onUpdate }: ExerciseSetsEditorProps) 
       ))}
 
       {/* Przycisk dodawania serii */}
-      <Button type="button" variant="outline" onClick={handleAddSet} className="w-full">
+      <Button type="button" data-testid="add-set-button" variant="outline" onClick={handleAddSet} className="w-full">
         <Plus className="w-4 h-4 mr-2" />
         Dodaj serię
       </Button>

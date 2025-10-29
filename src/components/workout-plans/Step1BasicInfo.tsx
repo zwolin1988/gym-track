@@ -59,6 +59,7 @@ export function Step1BasicInfo({ name, description, onChange }: Step1BasicInfoPr
         </Label>
         <Input
           id="plan-name"
+          data-testid="plan-name-input"
           type="text"
           value={name}
           onChange={handleNameChange}
@@ -78,6 +79,7 @@ export function Step1BasicInfo({ name, description, onChange }: Step1BasicInfoPr
         <Label htmlFor="plan-description">Opis planu (opcjonalnie)</Label>
         <Textarea
           id="plan-description"
+          data-testid="plan-description-input"
           value={description || ""}
           onChange={handleDescriptionChange}
           placeholder="Krótki opis planu treningowego..."

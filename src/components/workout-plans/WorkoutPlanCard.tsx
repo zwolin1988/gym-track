@@ -17,6 +17,7 @@ export default function WorkoutPlanCard({ plan }: WorkoutPlanCardProps) {
   return (
     <a
       href={`/workout-plans/${plan.id}`}
+      data-testid={`workout-plan-card-${plan.id}`}
       className="group overflow-hidden rounded-lg border bg-card shadow-sm transition-all hover:border-primary hover:shadow-md"
     >
       <div className="p-6">
