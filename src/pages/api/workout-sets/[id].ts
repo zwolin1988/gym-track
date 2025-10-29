@@ -98,6 +98,7 @@ export const PATCH: APIRoute = async ({ locals, params, request }) => {
       throw error;
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in PATCH /api/workout-sets/[id]:", error);
     return new Response(
       JSON.stringify({
@@ -180,6 +181,7 @@ export const DELETE: APIRoute = async ({ locals, params }) => {
       throw error;
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in DELETE /api/workout-sets/[id]:", error);
     return new Response(
       JSON.stringify({

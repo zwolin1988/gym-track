@@ -38,6 +38,7 @@ export default function WorkoutPlanActions({ planId, hasExercises }: WorkoutPlan
       // Przekierowanie do aktywnego treningu
       window.location.href = "/workouts/active";
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("Error starting workout:", error);
       alert("Wystąpił błąd podczas rozpoczynania treningu");
     } finally {

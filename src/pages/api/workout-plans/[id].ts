@@ -61,6 +61,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in GET /api/workout-plans/[id]:", error);
     return new Response(
       JSON.stringify({
@@ -147,6 +148,7 @@ export const PATCH: APIRoute = async ({ locals, params, request }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in PATCH /api/workout-plans/[id]:", error);
     return new Response(
       JSON.stringify({
@@ -197,11 +199,14 @@ export const DELETE: APIRoute = async ({ locals, params }) => {
 
     // 3. Call service to delete workout plan
     try {
+      // eslint-disable-next-line no-console
       console.log("DELETE endpoint - planId:", id, "userId:", locals.user.id);
       const deleted = await workoutPlansService.deleteWorkoutPlan(id, locals.supabase, locals.user.id);
+      // eslint-disable-next-line no-console
       console.log("DELETE endpoint - deleted result:", deleted);
 
       if (!deleted) {
+        // eslint-disable-next-line no-console
         console.log("DELETE endpoint - returning 404 because deleted is false");
         return new Response(
           JSON.stringify({
@@ -228,6 +233,7 @@ export const DELETE: APIRoute = async ({ locals, params }) => {
       throw error;
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in DELETE /api/workout-plans/[id]:", error);
     return new Response(
       JSON.stringify({

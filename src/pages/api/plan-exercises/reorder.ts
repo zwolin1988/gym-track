@@ -73,6 +73,7 @@ export const PATCH: APIRoute = async ({ locals, request }) => {
       throw error;
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in PATCH /api/plan-exercises/reorder:", error);
     return new Response(
       JSON.stringify({

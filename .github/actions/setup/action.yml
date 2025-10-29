@@ -1,0 +1,25 @@
+name: 'Setup Node.js and Dependencies'
+description: 'Common setup steps for Node.js projects with npm ci'
+
+inputs:
+  node-version-file:
+    description: 'Path to .nvmrc file'
+    required: false
+    default: '.nvmrc'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version-file: ${{ inputs.node-version-file }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Install Playwright browsers
+      shell: bash
+      run: npm run playwright:install

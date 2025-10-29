@@ -28,6 +28,7 @@ export function ActiveWorkoutContainer({ initialWorkout }: ActiveWorkoutContaine
       // Przekierowanie do szczegółów treningu
       window.location.href = `/workouts/${workout.id}`;
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error("Failed to complete workout:", err);
       setIsCompleting(false); // Przywróć beforeunload jeśli błąd
       // Error jest już wyświetlony w UI przez useActiveWorkout

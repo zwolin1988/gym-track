@@ -24,6 +24,7 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
 
   // Walidacja danych
   if (!exercise?.id || !exercise?.name) {
+    // eslint-disable-next-line no-console
     console.warn("Invalid exercise data:", exercise);
     return null;
   }

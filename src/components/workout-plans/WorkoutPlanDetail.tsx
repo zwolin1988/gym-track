@@ -18,13 +18,16 @@ export default function WorkoutPlanDetail({ planId }: WorkoutPlanDetailProps) {
       setError(null);
 
       try {
+        // eslint-disable-next-line no-console
         console.log(`Fetching plan with ID: ${planId}`);
         const response = await fetch(`/api/workout-plans/${planId}`);
 
+        // eslint-disable-next-line no-console
         console.log(`Response status: ${response.status}`);
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
+          // eslint-disable-next-line no-console
           console.error("Error response:", errorData);
 
           if (response.status === 404) {
@@ -34,9 +37,11 @@ export default function WorkoutPlanDetail({ planId }: WorkoutPlanDetailProps) {
         }
 
         const data = await response.json();
+        // eslint-disable-next-line no-console
         console.log("Plan data received:", data);
         setPlan(data.data);
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.error("Error fetching plan:", err);
         setError(err instanceof Error ? err.message : "Wystąpił błąd");
       } finally {
@@ -75,6 +80,7 @@ export default function WorkoutPlanDetail({ planId }: WorkoutPlanDetailProps) {
 
       window.location.href = "/workouts/active";
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error("Error starting workout:", err);
       alert("Wystąpił błąd podczas rozpoczynania treningu");
     } finally {
@@ -89,15 +95,18 @@ export default function WorkoutPlanDetail({ planId }: WorkoutPlanDetailProps) {
 
     setIsDeleting(true);
     try {
+      // eslint-disable-next-line no-console
       console.log(`Deleting plan with ID: ${planId}`);
       const response = await fetch(`/api/workout-plans/${planId}`, {
         method: "DELETE",
       });
 
+      // eslint-disable-next-line no-console
       console.log(`Delete response status: ${response.status}`);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        // eslint-disable-next-line no-console
         console.error("Delete error response:", errorData);
 
         if (response.status === 409) {
@@ -110,10 +119,12 @@ export default function WorkoutPlanDetail({ planId }: WorkoutPlanDetailProps) {
         return;
       }
 
+      // eslint-disable-next-line no-console
       console.log("Plan deleted successfully, redirecting...");
       // Redirect to plans list after successful deletion
       window.location.href = "/workout-plans";
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error("Error deleting plan:", err);
       alert("Wystąpił błąd podczas usuwania planu.");
     } finally {

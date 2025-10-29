@@ -12,6 +12,7 @@ export function saveWorkoutToLocalStorage(state: StoredWorkoutState): void {
   try {
     localStorage.setItem(ACTIVE_WORKOUT_STORAGE_KEY, JSON.stringify(state));
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Failed to save workout state to localStorage:", error);
   }
 }
@@ -28,6 +29,7 @@ export function loadWorkoutFromLocalStorage(workoutId: string): StoredWorkoutSta
 
     // Sprawdz czy workout ID si zgadza
     if (state.workoutId !== workoutId) {
+      // eslint-disable-next-line no-console
       console.log("Workout ID mismatch in localStorage, ignoring stored state");
       return null;
     }
@@ -36,12 +38,14 @@ export function loadWorkoutFromLocalStorage(workoutId: string): StoredWorkoutSta
     const lastUpdated = new Date(state.lastUpdated);
     const hoursSinceUpdate = (Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60);
     if (hoursSinceUpdate > 24) {
+      // eslint-disable-next-line no-console
       console.log("Stored workout state is older than 24h, ignoring");
       return null;
     }
 
     return state;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Failed to load workout state from localStorage:", error);
     return null;
   }
@@ -54,6 +58,7 @@ export function clearWorkoutFromLocalStorage(): void {
   try {
     localStorage.removeItem(ACTIVE_WORKOUT_STORAGE_KEY);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Failed to clear workout state from localStorage:", error);
   }
 }

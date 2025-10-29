@@ -83,6 +83,7 @@ export const PATCH: APIRoute = async ({ locals, params, request }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in PATCH /api/plan-exercise-sets/[id]:", error);
     return new Response(
       JSON.stringify({
@@ -147,6 +148,7 @@ export const DELETE: APIRoute = async ({ locals, params }) => {
     // 4. Return success response (204 No Content)
     return new Response(null, { status: 204 });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in DELETE /api/plan-exercise-sets/[id]:", error);
     return new Response(
       JSON.stringify({
