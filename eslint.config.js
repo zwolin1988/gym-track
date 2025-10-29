@@ -63,6 +63,13 @@ const e2eConfig = tseslint.config({
   },
 });
 
+const astroConfig = tseslint.config({
+  files: ["**/*.astro"],
+  rules: {
+    "prettier/prettier": "off",
+  },
+});
+
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
   baseConfig,
@@ -70,5 +77,6 @@ export default tseslint.config(
   reactConfig,
   e2eConfig,
   eslintPluginAstro.configs["flat/recommended"],
-  eslintPluginPrettier
+  eslintPluginPrettier,
+  astroConfig
 );

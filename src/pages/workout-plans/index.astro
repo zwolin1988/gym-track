@@ -2,7 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 import { WorkoutPlansFilters } from "@/components/workout-plans/WorkoutPlansFilters";
 import WorkoutPlanCard from "@/components/workout-plans/WorkoutPlanCard";
-import type { WorkoutPlanListItemDTO } from "@/types";
+import { getWorkoutPlans, checkActiveWorkout } from "@/lib/services/workout-plans-list.service";
 
 export const prerender = false;
 
@@ -17,91 +17,20 @@ if (!user) {
 const searchParams = Astro.url.searchParams;
 const search = searchParams.get("search") || "";
 const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
-const limit = 20;
 
-let query = Astro.locals.supabase
-  .from("workout_plans")
-  .select(
-    `
-    id,
-    name,
-    description,
-    created_at,
-    updated_at,
-    last_used_at,
-    plan_exercises(
-      id,
-      plan_exercise_sets(
-        id
-      )
-    )
-  `,
-    { count: "exact" }
-  )
-  .is("deleted_at", null)
-  .order("updated_at", { ascending: false });
+// 3. Get workout plans
+const result = await getWorkoutPlans({ supabase: Astro.locals.supabase, search, page });
+const plans = result.plans;
+const totalPages = result.totalPages;
+const error = result.error;
 
-// Apply filters
-if (search) {
-  query = query.ilike("name", `%${search}%`);
-}
-
-// Apply pagination
-const from = (page - 1) * limit;
-const to = from + limit - 1;
-query = query.range(from, to);
-
-// 4. Execute query
-const { data: plansRaw, error, count } = await query;
-
-// 5. Handle errors
+// 4. Handle errors
 if (error) {
-  return Astro.redirect("/error?message=" + encodeURIComponent("Nie udało się załadować planów treningowych"));
+  return Astro.redirect("/error?message=" + encodeURIComponent(error));
 }
 
-// 6. Transform data
-interface PlanRawData {
-  id: string;
-  name: string;
-  description: string | null;
-  created_at: string;
-  updated_at: string;
-  last_used_at: string | null;
-  plan_exercises: {
-    id: string;
-    plan_exercise_sets: {
-      id: string;
-    }[];
-  }[];
-}
-
-const plans: WorkoutPlanListItemDTO[] = (plansRaw || []).map((p: PlanRawData) => {
-  const exercise_count = p.plan_exercises?.length || 0;
-  const total_sets = p.plan_exercises?.reduce((sum, ex) => sum + (ex.plan_exercise_sets?.length || 0), 0) || 0;
-
-  return {
-    id: p.id,
-    name: p.name,
-    description: p.description,
-    exercise_count,
-    total_sets,
-    last_used_at: p.last_used_at,
-    created_at: p.created_at,
-    updated_at: p.updated_at,
-  };
-});
-
-const totalPlans = count || 0;
-const totalPages = Math.ceil(totalPlans / limit);
-
-// 7. Check for active workout
-const { data: activeWorkout } = await Astro.locals.supabase
-  .from("workouts")
-  .select("id")
-  .eq("status", "active")
-  .maybeSingle();
-
-const hasActiveWorkout = !!activeWorkout;
+// 5. Check for active workout
+const hasActiveWorkout = await checkActiveWorkout(Astro.locals.supabase);
 ---
 
 <Layout title="Workout Plans - Gym Track">
