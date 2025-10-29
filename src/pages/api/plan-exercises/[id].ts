@@ -57,6 +57,7 @@ export const DELETE: APIRoute = async ({ locals, params }) => {
     // 4. Return success response (204 No Content)
     return new Response(null, { status: 204 });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in DELETE /api/plan-exercises/[id]:", error);
     return new Response(
       JSON.stringify({

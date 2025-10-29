@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { WorkoutDetailDTO, UpdateWorkoutSetCommand, CreateWorkoutSetCommand } from "@/types";
 import type { UseActiveWorkoutReturn, StoredWorkoutState } from "../types";
 import {
@@ -16,15 +16,18 @@ export function useActiveWorkout(initialWorkout: WorkoutDetailDTO): UseActiveWor
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Memoize workout ID aby uniknąć niepotrzebnych re-renderów
+  const workoutId = useMemo(() => initialWorkout.id, [initialWorkout.id]);
+
   // Załaduj stan z localStorage przy montowaniu
   useEffect(() => {
-    const storedState = loadWorkoutFromLocalStorage(initialWorkout.id);
+    const storedState = loadWorkoutFromLocalStorage(workoutId);
     if (storedState) {
       // Merge localStorage state z server state
       const mergedWorkout = mergeWorkoutStates(initialWorkout, storedState);
       setWorkout(mergedWorkout);
     }
-  }, [initialWorkout.id]);
+  }, [workoutId, initialWorkout]);
 
   // Zapisz stan do localStorage przy każdej zmianie (backup)
   useEffect(() => {
@@ -47,63 +50,87 @@ export function useActiveWorkout(initialWorkout: WorkoutDetailDTO): UseActiveWor
   }, [workout]);
 
   /**
-   * Aktualizacja serii z optimistic update
+   * Odświeżenie danych treningu z serwera
    */
-  const updateSet = useCallback(async (setId: string, updates: UpdateWorkoutSetCommand) => {
-    // Optimistic update
-    setWorkout((prev) => {
-      const newState = {
-        ...prev,
-        exercises: prev.exercises.map((ex) => ({
-          ...ex,
-          sets: ex.sets.map((set) => (set.id === setId ? { ...set, ...updates } : set)),
-        })),
-      };
-
-      // KLUCZOWE: Zapisz NOWY stan do localStorage NATYCHMIAST
-      const stateToSave: StoredWorkoutState = {
-        workoutId: newState.id,
-        lastUpdated: new Date().toISOString(),
-        exercises: newState.exercises.map((ex) => ({
-          exerciseId: ex.id,
-          sets: ex.sets.map((set) => ({
-            setId: set.id,
-            actual_reps: set.actual_reps,
-            actual_weight: set.actual_weight,
-            completed: set.completed,
-            note: set.note,
-          })),
-        })),
-      };
-
-      saveWorkoutToLocalStorage(stateToSave);
-
-      return newState;
-    });
-
+  const refreshWorkout = useCallback(async () => {
     try {
       setIsLoading(true);
-      setError(null);
-
-      const response = await fetch(`/api/workout-sets/${setId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-      });
+      const response = await fetch("/api/workouts/active");
 
       if (!response.ok) {
-        throw new Error("Failed to update set");
+        throw new Error("Failed to refresh workout");
       }
 
-      // Sukces - stan już zaktualizowany optimistically
+      const { data } = await response.json();
+      setWorkout(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
-      // Rollback - odśwież dane z serwera
-      await refreshWorkout();
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  /**
+   * Aktualizacja serii z optimistic update
+   */
+  const updateSet = useCallback(
+    async (setId: string, updates: UpdateWorkoutSetCommand) => {
+      // Optimistic update
+      setWorkout((prev) => {
+        const newState = {
+          ...prev,
+          exercises: prev.exercises.map((ex) => ({
+            ...ex,
+            sets: ex.sets.map((set) => (set.id === setId ? { ...set, ...updates } : set)),
+          })),
+        };
+
+        // KLUCZOWE: Zapisz NOWY stan do localStorage NATYCHMIAST
+        const stateToSave: StoredWorkoutState = {
+          workoutId: newState.id,
+          lastUpdated: new Date().toISOString(),
+          exercises: newState.exercises.map((ex) => ({
+            exerciseId: ex.id,
+            sets: ex.sets.map((set) => ({
+              setId: set.id,
+              actual_reps: set.actual_reps,
+              actual_weight: set.actual_weight,
+              completed: set.completed,
+              note: set.note,
+            })),
+          })),
+        };
+
+        saveWorkoutToLocalStorage(stateToSave);
+
+        return newState;
+      });
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const response = await fetch(`/api/workout-sets/${setId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updates),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to update set");
+        }
+
+        // Sukces - stan już zaktualizowany optimistically
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unknown error");
+        // Rollback - odśwież dane z serwera
+        await refreshWorkout();
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [refreshWorkout]
+  );
 
   /**
    * Dodanie nowej serii
@@ -237,27 +264,6 @@ export function useActiveWorkout(initialWorkout: WorkoutDetailDTO): UseActiveWor
       setIsLoading(false);
     }
   }, [workout.id, syncAllUpdates]);
-
-  /**
-   * Odświeżenie danych treningu z serwera
-   */
-  const refreshWorkout = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch("/api/workouts/active");
-
-      if (!response.ok) {
-        throw new Error("Failed to refresh workout");
-      }
-
-      const { data } = await response.json();
-      setWorkout(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
 
   return {
     workout,

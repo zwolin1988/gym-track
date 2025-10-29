@@ -64,6 +64,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in GET /api/exercises/[id]:", error);
     return new Response(
       JSON.stringify({

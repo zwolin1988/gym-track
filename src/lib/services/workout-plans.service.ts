@@ -283,11 +283,15 @@ export class WorkoutPlansService {
       .select()
       .single();
 
+    // eslint-disable-next-line no-console
     console.log("Delete plan - id:", id, "userId:", userId);
+    // eslint-disable-next-line no-console
     console.log("Delete plan - data:", data);
+    // eslint-disable-next-line no-console
     console.log("Delete plan - error:", error);
 
     if (error || !data) {
+      // eslint-disable-next-line no-console
       console.error("Failed to delete workout plan. Error:", error, "Data:", data);
       return false;
     }

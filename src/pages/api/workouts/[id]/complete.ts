@@ -75,6 +75,7 @@ export const POST: APIRoute = async ({ locals, params }) => {
       throw error;
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in POST /api/workouts/[id]/complete:", error);
     return new Response(
       JSON.stringify({

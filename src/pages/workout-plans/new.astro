@@ -34,6 +34,7 @@ const { data: categories, error: categoriesError } = await Astro.locals.supabase
   .order("order_index");
 
 if (exercisesError || categoriesError) {
+  // eslint-disable-next-line no-console
   console.error("Error fetching data:", exercisesError || categoriesError);
   return Astro.redirect("/error?message=Nie%20udało%20się%20załadować%20danych");
 }

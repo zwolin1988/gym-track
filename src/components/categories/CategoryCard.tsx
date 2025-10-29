@@ -12,6 +12,7 @@ export function CategoryCard({ category, exerciseCount }: CategoryCardProps) {
 
   // Walidacja danych
   if (!category?.id || !category?.name || exerciseCount < 0) {
+    // eslint-disable-next-line no-console
     console.warn("Invalid category data:", category);
     return null;
   }

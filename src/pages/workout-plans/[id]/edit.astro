@@ -47,6 +47,7 @@ const { data: plan, error: planError } = await Astro.locals.supabase
   .single();
 
 if (exercisesError || categoriesError || planError || !plan) {
+  // eslint-disable-next-line no-console
   console.error("Error fetching data:", exercisesError || categoriesError || planError);
   return Astro.redirect("/workout-plans?error=Nie%20znaleziono%20planu");
 }

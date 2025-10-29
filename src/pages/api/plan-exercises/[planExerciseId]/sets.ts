@@ -86,6 +86,7 @@ export const POST: APIRoute = async ({ locals, params, request }) => {
       throw error;
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in POST /api/plan-exercises/[planExerciseId]/sets:", error);
     return new Response(
       JSON.stringify({

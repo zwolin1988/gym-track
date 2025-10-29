@@ -67,6 +67,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in GET /api/workouts:", error);
     return new Response(
       JSON.stringify({
@@ -151,6 +152,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
       throw error;
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in POST /api/workouts:", error);
     return new Response(
       JSON.stringify({
