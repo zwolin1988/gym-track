@@ -66,6 +66,7 @@ export default function Navigation({ currentPath = "/", user }: NavigationProps)
             <a
               key={item.href}
               href={item.href}
+              data-testid={`nav-link-${item.label.toLowerCase()}`}
               className={`text-sm font-medium transition-colors cursor-pointer ${
                 isActive(item.href) ? "text-primary" : "text-muted-foreground hover:text-primary"
               }`}
@@ -94,7 +95,11 @@ export default function Navigation({ currentPath = "/", user }: NavigationProps)
                 </a>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <a href="/workout-plans/new" className="flex items-center gap-2 cursor-pointer">
+                <a
+                  href="/workout-plans/new"
+                  data-testid="nav-new-plan"
+                  className="flex items-center gap-2 cursor-pointer"
+                >
                   <span className="material-symbols-outlined text-base">list_alt</span>
                   Nowy plan treningowy
                 </a>

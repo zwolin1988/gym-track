@@ -7,9 +7,11 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables from .env.test file for E2E tests
-// This allows separate test database and credentials
-dotenv.config({ path: path.resolve(__dirname, ".env.test") });
+// Load environment variables based on E2E_ENV_FILE variable
+// - For CI/CD (test:e2e): uses .env.test (default)
+// - For local UI (test:e2e:ui): uses .env
+const envFile = process.env.E2E_ENV_FILE || ".env.test";
+dotenv.config({ path: path.resolve(__dirname, envFile) });
 
 /**
  * Playwright Configuration for E2E Testing
@@ -107,16 +109,13 @@ export default defineConfig({
 
   // Web server configuration
   webServer: {
-    command: "npm run dev",
+    // Use dotenv-cli to load the correct env file before starting the dev server
+    // This ensures Astro uses the right Supabase instance
+    command: `npx dotenv-cli -e ${envFile} -- npm run dev`,
     url: "http://localhost:3000",
-    // Reuse server for development (faster), but not in CI
-    reuseExistingServer: !process.env.CI,
+    // Reuse server for development (faster), but not in CI or when using .env.test
+    // This ensures test:e2e (which uses .env.test) doesn't reuse a server started with .env
+    reuseExistingServer: !process.env.CI && envFile === ".env",
     timeout: 120 * 1000,
-    // Pass environment variables from .env.test to the dev server
-    env: {
-      SUPABASE_URL: process.env.SUPABASE_URL || "",
-      SUPABASE_KEY: process.env.SUPABASE_KEY || "",
-      OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || "",
-    },
   },
 });

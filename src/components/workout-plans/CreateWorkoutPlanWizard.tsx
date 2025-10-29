@@ -81,16 +81,21 @@ export function CreateWorkoutPlanWizard({
 
         {/* Nawigacja */}
         <div className="flex justify-between mt-8 pt-6 border-t">
-          <Button variant="outline" onClick={goPrevious} disabled={!canGoPrevious || isLoading}>
+          <Button
+            data-testid="wizard-button-back"
+            variant="outline"
+            onClick={goPrevious}
+            disabled={!canGoPrevious || isLoading}
+          >
             Wstecz
           </Button>
 
           {currentStep < 3 ? (
-            <Button onClick={goNext} disabled={!canGoNext || isLoading}>
+            <Button data-testid="wizard-button-next" onClick={goNext} disabled={!canGoNext || isLoading}>
               {isLoading ? "Zapisywanie..." : "Dalej"}
             </Button>
           ) : (
-            <Button onClick={submitPlan} disabled={!canGoNext || isLoading}>
+            <Button data-testid="wizard-button-submit" onClick={submitPlan} disabled={!canGoNext || isLoading}>
               {isLoading
                 ? editMode
                   ? "Aktualizowanie planu..."

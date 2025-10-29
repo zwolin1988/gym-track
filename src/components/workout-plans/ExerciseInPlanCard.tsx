@@ -60,10 +60,14 @@ export default function ExerciseInPlanCard({
   const exerciseData = isSelectedExercise(exercise) ? exercise.exercise : exercise.exercise;
   const sets = exercise.sets;
 
+  // Get unique exercise ID for testing
+  const exerciseId = isSelectedExercise(exercise) ? exercise.exerciseId : exercise.exercise.id;
+
   return (
     <div
       ref={draggable ? sortable.setNodeRef : undefined}
       style={style}
+      data-testid={`exercise-in-plan-${exerciseId}`}
       className="rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md"
     >
       <div className="flex items-start gap-4">

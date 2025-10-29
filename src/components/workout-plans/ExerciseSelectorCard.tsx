@@ -32,6 +32,7 @@ export function ExerciseSelectorCard({ exercise, isSelected, onSelect }: Exercis
 
   return (
     <div
+      data-testid={`exercise-card-${exercise.id}`}
       className={cn(
         "flex items-center gap-3 p-3 bg-card border rounded-lg transition-all",
         isSelected && "border-primary bg-primary/5"
@@ -70,6 +71,7 @@ export function ExerciseSelectorCard({ exercise, isSelected, onSelect }: Exercis
       {/* Przycisk dodaj */}
       <Button
         type="button"
+        data-testid={`exercise-add-button-${exercise.id}`}
         size="sm"
         variant={isSelected ? "secondary" : "default"}
         onClick={onSelect}
