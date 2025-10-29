@@ -1,0 +1,164 @@
+name: Pull Request CI
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js and dependencies
+        uses: ./.github/actions/setup
+
+      - name: Run ESLint
+        run: npm run lint
+
+  unit-test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js and dependencies
+        uses: ./.github/actions/setup
+
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload unit test coverage
+        uses: actions/upload-artifact@v5
+        with:
+          name: unit-test-coverage
+          path: coverage/
+          retention-days: 30
+
+  e2e-test:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    environment: integration
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+      BASE_URL: http://localhost:3000
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js and dependencies
+        uses: ./.github/actions/setup
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload E2E test results
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload E2E test coverage
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: e2e-test-results
+          path: test-results/
+          retention-days: 30
+
+  status-comment:
+    name: Post Status Comment
+    runs-on: ubuntu-latest
+    needs: [lint, unit-test, e2e-test]
+    if: always()
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Download unit test coverage
+        uses: actions/download-artifact@v6
+        with:
+          name: unit-test-coverage
+          path: coverage/
+
+      - name: Download E2E test results
+        uses: actions/download-artifact@v6
+        with:
+          name: e2e-test-results
+          path: test-results/
+        continue-on-error: true
+
+      - name: Determine overall status
+        id: status
+        run: |
+          if [[ "${{ needs.lint.result }}" == "success" && "${{ needs.unit-test.result }}" == "success" && "${{ needs.e2e-test.result }}" == "success" ]]; then
+            echo "status=✅ Success" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+          else
+            echo "status=❌ Failed" >> $GITHUB_OUTPUT
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment PR
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            let coverageSummary = 'Coverage data not available';
+            try {
+              const coveragePath = path.join(process.cwd(), 'coverage', 'coverage-summary.json');
+              if (fs.existsSync(coveragePath)) {
+                const coverage = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
+                const total = coverage.total;
+                coverageSummary = `
+            | Metric | Coverage |
+            |--------|----------|
+            | Lines | ${total.lines.pct}% |
+            | Statements | ${total.statements.pct}% |
+            | Functions | ${total.functions.pct}% |
+            | Branches | ${total.branches.pct}% |`;
+              }
+            } catch (error) {
+              console.log('Could not read coverage summary:', error);
+            }
+
+            const lintStatus = '${{ needs.lint.result }}' === 'success' ? '✅' : '❌';
+            const unitStatus = '${{ needs.unit-test.result }}' === 'success' ? '✅' : '❌';
+            const e2eStatus = '${{ needs.e2e-test.result }}' === 'success' ? '✅' : '❌';
+
+            const body = `## ${{ steps.status.outputs.emoji }} Pull Request CI Status
+
+            ### Job Results
+            | Job | Status |
+            |-----|--------|
+            | Lint | ${lintStatus} ${{ needs.lint.result }} |
+            | Unit Tests | ${unitStatus} ${{ needs.unit-test.result }} |
+            | E2E Tests | ${e2eStatus} ${{ needs.e2e-test.result }} |
+
+            ### Unit Test Coverage
+            ${coverageSummary}
+
+            ---
+            **Overall Status:** ${{ steps.status.outputs.status }}
+
+            *Workflow run: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
