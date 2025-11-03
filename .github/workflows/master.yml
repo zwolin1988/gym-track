@@ -37,7 +37,6 @@ on:
   push:
     branches:
       - master
-  workflow_dispatch:
 
 env:
   CLOUDFLARE_PROJECT_NAME: gym-track
