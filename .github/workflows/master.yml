@@ -1,0 +1,173 @@
+# Cloudflare Pages Deployment Workflow
+#
+# This workflow deploys the application to Cloudflare Pages when changes are pushed to the master branch.
+#
+# Required GitHub Secrets:
+# ----------------------
+# Application Secrets:
+#   - SUPABASE_URL: Your Supabase project URL
+#   - SUPABASE_KEY: Your Supabase anon/public key
+#   - OPENROUTER_API_KEY: Your OpenRouter API key for AI features
+#
+# Cloudflare Secrets:
+#   - CLOUDFLARE_API_TOKEN: Cloudflare API token with Pages deployment permissions
+#     Create at: https://dash.cloudflare.com/profile/api-tokens
+#     Required permissions: "Cloudflare Pages - Edit"
+#   - CLOUDFLARE_ACCOUNT_ID: Your Cloudflare account ID
+#     Find at: https://dash.cloudflare.com/ (in the URL or account settings)
+#   - CLOUDFLARE_PROJECT_NAME: The name of your Cloudflare Pages project
+#
+# GitHub Environment:
+# ------------------
+# The workflow uses a "production" environment. Create it in:
+# Settings → Environments → New environment → "production"
+#
+# Workflow Jobs:
+# -------------
+# 1. lint: Runs ESLint to check code quality
+# 2. unit-test: Runs unit tests with coverage reporting
+# 3. build: Builds the Astro project for production
+# 4. deploy: Deploys the built application to Cloudflare Pages
+# 5. status-summary: Provides deployment status summary
+#
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js and dependencies
+        uses: ./.github/actions/setup
+        with:
+          skip-playwright: 'true'
+
+      - name: Run ESLint
+        run: npm run lint
+
+  unit-test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js and dependencies
+        uses: ./.github/actions/setup
+        with:
+          skip-playwright: 'true'
+
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload unit test coverage
+        uses: actions/upload-artifact@v5
+        with:
+          name: unit-test-coverage
+          path: coverage/
+          retention-days: 30
+
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+    needs: unit-test
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js and dependencies
+        uses: ./.github/actions/setup
+        with:
+          skip-playwright: 'true'
+
+      - name: Build Astro project
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: build-output
+          path: dist/
+          retention-days: 1
+
+  deploy:
+    name: Deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
+    needs: build
+    environment: production
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: build-output
+          path: dist/
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=${{ secrets.CLOUDFLARE_PROJECT_NAME }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  status-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [lint, unit-test, build, deploy]
+    if: always()
+    steps:
+      - name: Download unit test coverage
+        uses: actions/download-artifact@v6
+        with:
+          name: unit-test-coverage
+          path: coverage/
+        continue-on-error: true
+
+      - name: Determine overall status
+        id: status
+        run: |
+          if [[ "${{ needs.lint.result }}" == "success" && "${{ needs.unit-test.result }}" == "success" && "${{ needs.build.result }}" == "success" && "${{ needs.deploy.result }}" == "success" ]]; then
+            echo "status=✅ Success" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+            echo "message=Deployment to Cloudflare Pages successful!" >> $GITHUB_OUTPUT
+          else
+            echo "status=❌ Failed" >> $GITHUB_OUTPUT
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+            echo "message=Deployment to Cloudflare Pages failed." >> $GITHUB_OUTPUT
+          fi
+
+      - name: Print summary
+        run: |
+          echo "## ${{ steps.status.outputs.emoji }} Deployment Status"
+          echo ""
+          echo "### Job Results"
+          echo "| Job | Status |"
+          echo "|-----|--------|"
+          echo "| Lint | ${{ needs.lint.result == 'success' && '✅' || '❌' }} ${{ needs.lint.result }} |"
+          echo "| Unit Tests | ${{ needs.unit-test.result == 'success' && '✅' || '❌' }} ${{ needs.unit-test.result }} |"
+          echo "| Build | ${{ needs.build.result == 'success' && '✅' || '❌' }} ${{ needs.build.result }} |"
+          echo "| Deploy | ${{ needs.deploy.result == 'success' && '✅' || '❌' }} ${{ needs.deploy.result }} |"
+          echo ""
+          echo "**Overall Status:** ${{ steps.status.outputs.status }}"
+          echo ""
+          echo "*Workflow run: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*"
