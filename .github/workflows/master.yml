@@ -17,10 +17,9 @@
 #     Find at: https://dash.cloudflare.com/ (in the URL or account settings)
 #   - CLOUDFLARE_PROJECT_NAME: The name of your Cloudflare Pages project
 #
-# GitHub Environment:
-# ------------------
-# The workflow uses a "production" environment. Create it in:
-# Settings → Environments → New environment → "production"
+# GitHub Secrets Configuration:
+# ---------------------------
+# Add secrets in: Settings → Secrets and variables → Actions → New repository secret
 #
 # Workflow Jobs:
 # -------------
@@ -33,9 +32,7 @@
 name: Deploy to Cloudflare Pages
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
 
 jobs:
   lint:
@@ -107,7 +104,6 @@ jobs:
     name: Deploy to Cloudflare Pages
     runs-on: ubuntu-latest
     needs: build
-    environment: production
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
