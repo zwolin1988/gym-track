@@ -13,8 +13,20 @@ import type { Database } from "../db/database.types";
  * - Redirect logged-in users away from auth pages
  */
 export const onRequest = defineMiddleware(async (context, next) => {
-  // 1. Create a Supabase client with cookie handling for SSR
-  const supabase = createServerClient<Database>(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_KEY, {
+  // 1. Get env vars - works in both dev (import.meta.env) and Cloudflare Pages (runtime.env)
+  interface CloudflareRuntime {
+    env?: {
+      SUPABASE_URL?: string;
+      SUPABASE_KEY?: string;
+    };
+  }
+
+  const runtime = (context.locals as { runtime?: CloudflareRuntime }).runtime;
+  const SUPABASE_URL = runtime?.env?.SUPABASE_URL || import.meta.env.SUPABASE_URL;
+  const SUPABASE_KEY = runtime?.env?.SUPABASE_KEY || import.meta.env.SUPABASE_KEY;
+
+  // 2. Create a Supabase client with cookie handling for SSR
+  const supabase = createServerClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
     cookies: {
       get: (key) => context.cookies.get(key)?.value,
       set: (key, value, options) => {
@@ -26,30 +38,30 @@ export const onRequest = defineMiddleware(async (context, next) => {
     },
   });
 
-  // 2. Get the authenticated user from Supabase Auth
+  // 3. Get the authenticated user from Supabase Auth
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 3. Make both the authenticated client and user available in context.locals
+  // 4. Make both the authenticated client and user available in context.locals
   context.locals.supabase = supabase;
   context.locals.user = user;
 
   const pathname = context.url.pathname;
 
-  // 4. Define protected paths (require authentication)
+  // 5. Define protected paths (require authentication)
   const protectedPaths = ["/dashboard", "/plans", "/workouts", "/workout-plans", "/history", "/profile"];
 
-  // 5. Define auth paths (login, register - should redirect if already logged in)
+  // 6. Define auth paths (login, register - should redirect if already logged in)
   const authPaths = ["/auth/login", "/auth/register"];
 
-  // 6. Check if current path is protected
+  // 7. Check if current path is protected
   const isProtectedPath = protectedPaths.some((path) => pathname.startsWith(path));
 
-  // 7. Check if current path is an auth page
+  // 8. Check if current path is an auth page
   const isAuthPath = authPaths.some((path) => pathname.startsWith(path));
 
-  // 8. Route Protection Logic (US-004)
+  // 9. Route Protection Logic (US-004)
   if (isProtectedPath && !user) {
     // User is not logged in but trying to access protected route
     // Redirect to login with redirectUrl to return after authentication
@@ -57,7 +69,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return context.redirect(`/auth/login?redirect=${redirectUrl}`);
   }
 
-  // 9. Redirect logged-in users away from auth pages
+  // 10. Redirect logged-in users away from auth pages
   if (isAuthPath && user) {
     // User is already logged in but trying to access login/register
     // Redirect to dashboard
