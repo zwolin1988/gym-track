@@ -121,11 +121,8 @@ export default defineConfig({
   webServer: {
     // Use test config (astro.config.test.mjs) with Node adapter for E2E tests
     // This avoids Cloudflare runtime issues and uses simpler Node.js server
-    // In CI: env vars are already set in workflow, so no need for dotenv-cli
-    // Locally: use dotenv-cli to load .env.test
-    command: process.env.CI
-      ? "npm run dev -- --config astro.config.test.mjs"
-      : `npx dotenv-cli -e ${process.env.E2E_ENV_FILE || ".env.test"} -- npm run dev -- --config astro.config.test.mjs`,
+    // Always use dotenv-cli to load .env.test (both CI and local)
+    command: `npx dotenv-cli -e ${process.env.E2E_ENV_FILE || ".env.test"} -- npm run dev -- --config astro.config.test.mjs`,
     url: "http://localhost:3000",
     // Reuse server for development (faster), but not in CI
     reuseExistingServer: !process.env.CI,
