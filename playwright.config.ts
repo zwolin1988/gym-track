@@ -116,9 +116,9 @@ export default defineConfig({
 
   // Web server configuration
   webServer: {
-    // Use dotenv-cli to load the correct env file before starting the dev server
-    // This ensures Astro uses the right Supabase instance
-    command: `npx dotenv-cli -e ${envFile} -- npm run dev`,
+    // Use test config (astro.config.test.mjs) with Node adapter for E2E tests
+    // This avoids Cloudflare runtime issues and uses simpler Node.js server
+    command: `npx dotenv-cli -e ${envFile} -- npm run dev -- --config astro.config.test.mjs`,
     url: "http://localhost:3000",
     // Reuse server for development (faster), but not in CI or when using .env.test
     // This ensures test:e2e (which uses .env.test) doesn't reuse a server started with .env

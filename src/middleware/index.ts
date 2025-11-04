@@ -13,39 +13,21 @@ import type { Database } from "../db/database.types";
  * - Redirect logged-in users away from auth pages
  */
 export const onRequest = defineMiddleware(async (context, next) => {
-  // 1. Get env vars - different sources for different environments:
-  //    - Cloudflare Pages (production): context.locals.runtime.env (from dashboard settings)
-  //    - Dev & E2E tests: import.meta.env (from .env files)
+  // 1. Get env vars from Cloudflare runtime or import.meta.env
+  // Cloudflare adapter provides env vars via context.locals.runtime.env
+  // In production: vars come from Cloudflare Pages dashboard
+  // In dev: vars come from .env file via platformProxy
 
-  // Define Cloudflare runtime type
   interface CloudflareRuntime {
     env?: {
       SUPABASE_URL?: string;
       SUPABASE_KEY?: string;
-      [key: string]: string | undefined;
     };
   }
 
-  interface LocalsWithRuntime {
-    runtime?: CloudflareRuntime;
-  }
-
-  // Try to get from Cloudflare runtime first (if available)
-  const runtime = (context.locals as LocalsWithRuntime).runtime;
+  const runtime = (context.locals as { runtime?: CloudflareRuntime }).runtime;
   const SUPABASE_URL = runtime?.env?.SUPABASE_URL || import.meta.env.SUPABASE_URL;
   const SUPABASE_KEY = runtime?.env?.SUPABASE_KEY || import.meta.env.SUPABASE_KEY;
-
-  // Debug logging for production debugging
-  if (!SUPABASE_URL || !SUPABASE_KEY) {
-    // eslint-disable-next-line no-console
-    console.error("[Middleware] Missing Supabase credentials!", {
-      hasRuntime: !!runtime,
-      hasRuntimeEnv: !!runtime?.env,
-      runtimeKeys: runtime?.env ? Object.keys(runtime.env) : [],
-      hasImportMetaUrl: !!import.meta.env.SUPABASE_URL,
-      hasImportMetaKey: !!import.meta.env.SUPABASE_KEY,
-    });
-  }
 
   // 2. Create a Supabase client with cookie handling for SSR
   const supabase = createServerClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
