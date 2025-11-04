@@ -15,13 +15,8 @@ export default defineConfig({
   server: { port: 3000 },
   vite: {
     plugins: [tailwindcss()],
-    // Pass env vars from process.env to import.meta.env for E2E tests
-    // This ensures vars loaded by dotenv-cli are available in middleware
-    define: {
-      "import.meta.env.SUPABASE_URL": JSON.stringify(process.env.SUPABASE_URL),
-      "import.meta.env.SUPABASE_KEY": JSON.stringify(process.env.SUPABASE_KEY),
-      "import.meta.env.OPENROUTER_API_KEY": JSON.stringify(process.env.OPENROUTER_API_KEY),
-    },
+    // Astro automatically loads .env files and makes them available as import.meta.env
+    // No need for vite.define - let Astro handle it
   },
   adapter: node({
     mode: "standalone",
