@@ -17,13 +17,27 @@ export const onRequest = defineMiddleware(async (context, next) => {
   //    - Cloudflare Pages (production): context.locals.runtime.env (from dashboard settings)
   //    - Dev & E2E tests: import.meta.env (from .env files)
 
+  // Define Cloudflare runtime type
+  interface CloudflareRuntime {
+    env?: {
+      SUPABASE_URL?: string;
+      SUPABASE_KEY?: string;
+      [key: string]: string | undefined;
+    };
+  }
+
+  interface LocalsWithRuntime {
+    runtime?: CloudflareRuntime;
+  }
+
   // Try to get from Cloudflare runtime first (if available)
-  const runtime = (context.locals as any).runtime;
+  const runtime = (context.locals as LocalsWithRuntime).runtime;
   const SUPABASE_URL = runtime?.env?.SUPABASE_URL || import.meta.env.SUPABASE_URL;
   const SUPABASE_KEY = runtime?.env?.SUPABASE_KEY || import.meta.env.SUPABASE_KEY;
 
-  // Debug logging
+  // Debug logging for production debugging
   if (!SUPABASE_URL || !SUPABASE_KEY) {
+    // eslint-disable-next-line no-console
     console.error("[Middleware] Missing Supabase credentials!", {
       hasRuntime: !!runtime,
       hasRuntimeEnv: !!runtime?.env,
