@@ -13,7 +13,11 @@ import type { Database } from "../db/database.types";
  * - Redirect logged-in users away from auth pages
  */
 export const onRequest = defineMiddleware(async (context, next) => {
-  // 1. Get env vars - works in both dev (import.meta.env) and Cloudflare Pages (runtime.env)
+  // 1. Get env vars from Cloudflare runtime or import.meta.env
+  // Cloudflare adapter provides env vars via context.locals.runtime.env
+  // In production: vars come from Cloudflare Pages dashboard
+  // In dev: vars come from .env file via platformProxy
+
   interface CloudflareRuntime {
     env?: {
       SUPABASE_URL?: string;

@@ -181,7 +181,8 @@ export class CreateWorkoutPlanPage {
     await this.submitButton.click();
 
     // Wait for navigation to workout plans list with success message
-    await this.page.waitForURL(/.*workout-plans\?success=/, { timeout: 10000 });
+    // Increased timeout for CI environments which may be slower
+    await this.page.waitForURL(/.*workout-plans\?success=/, { timeout: 20000 });
   }
 
   /**

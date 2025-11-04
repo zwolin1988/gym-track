@@ -15,6 +15,7 @@
 import { test as setup, expect } from "@playwright/test";
 import { LoginPage } from "./pages/LoginPage";
 import { TEST_USERS } from "./fixtures/auth";
+import { cleanupTestData } from "./helpers/cleanup";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -25,6 +26,16 @@ const __dirname = path.dirname(__filename);
 const authFile = path.join(__dirname, "../playwright/.auth/user.json");
 
 setup("authenticate", async ({ page }) => {
+  // Clean up any leftover test data from previous runs
+  console.log("🧹 Cleaning up test data before authentication...");
+  try {
+    await cleanupTestData();
+    console.log("✅ Pre-test cleanup completed");
+  } catch (error) {
+    console.warn("⚠️ Pre-test cleanup failed (may be expected on first run):", error);
+    // Continue anyway - this is not critical for the test
+  }
+
   // Navigate to login page
   const loginPage = new LoginPage(page);
   await loginPage.goto();

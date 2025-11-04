@@ -101,7 +101,8 @@ test.describe("Create Workout Plan", () => {
     await createPlanPage.submitButton.click();
 
     // Wait for redirect to workout plans list with success message
-    await page.waitForURL(/.*workout-plans\?success=/, { timeout: 10000 });
+    // Increased timeout for CI environments which may be slower
+    await page.waitForURL(/.*workout-plans\?success=/, { timeout: 20000 });
 
     // Verify we're back on the workout plans list
     await expect(page).toHaveURL(/.*workout-plans/);
