@@ -14,10 +14,10 @@ import type { Database } from "../../src/db/database.types";
  * Logs in as the test user to respect RLS policies
  */
 async function getAuthenticatedSupabaseClient() {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_KEY;
-  const testEmail = process.env.E2E_USERNAME;
-  const testPassword = process.env.E2E_PASSWORD;
+  const supabaseUrl = process.env.SUPABASE_URL?.trim();
+  const supabaseKey = process.env.SUPABASE_KEY?.trim();
+  const testEmail = process.env.E2E_USERNAME?.trim();
+  const testPassword = process.env.E2E_PASSWORD?.trim();
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error("SUPABASE_URL and SUPABASE_KEY must be set in environment");
@@ -59,7 +59,7 @@ async function getAuthenticatedSupabaseClient() {
  */
 export async function cleanupTestData() {
   const supabase = await getAuthenticatedSupabaseClient();
-  const testUserId = process.env.E2E_USERNAME_ID;
+  const testUserId = process.env.E2E_USERNAME_ID?.trim();
 
   if (!testUserId) {
     throw new Error("E2E_USERNAME_ID must be set in environment");
@@ -148,7 +148,7 @@ export async function cleanupTestData() {
  */
 export async function cleanupWorkoutPlan(planId: string) {
   const supabase = await getAuthenticatedSupabaseClient();
-  const testUserId = process.env.E2E_USERNAME_ID;
+  const testUserId = process.env.E2E_USERNAME_ID?.trim();
 
   if (!testUserId) {
     throw new Error("E2E_USERNAME_ID must be set in environment");
