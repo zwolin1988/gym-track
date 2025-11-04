@@ -122,9 +122,11 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          directory: dist
-          projectName: gym-track
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy dist --project-name=gym-track
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
 
   status-summary:
     name: Deployment Summary
