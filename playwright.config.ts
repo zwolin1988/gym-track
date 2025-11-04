@@ -8,10 +8,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load environment variables based on E2E_ENV_FILE variable
-// - For CI/CD (test:e2e): uses .env.test (default)
+// - For CI/CD: env vars are set in workflow, no need to load file
+// - For local (test:e2e): uses .env.test (default)
 // - For local UI (test:e2e:ui): uses .env
-const envFile = process.env.E2E_ENV_FILE || ".env.test";
-dotenv.config({ path: path.resolve(__dirname, envFile) });
+if (!process.env.CI) {
+  const envFile = process.env.E2E_ENV_FILE || ".env.test";
+  dotenv.config({ path: path.resolve(__dirname, envFile) });
+}
 
 /**
  * Playwright Configuration for E2E Testing
@@ -118,11 +121,14 @@ export default defineConfig({
   webServer: {
     // Use test config (astro.config.test.mjs) with Node adapter for E2E tests
     // This avoids Cloudflare runtime issues and uses simpler Node.js server
-    command: `npx dotenv-cli -e ${envFile} -- npm run dev -- --config astro.config.test.mjs`,
+    // In CI: env vars are already set in workflow, so no need for dotenv-cli
+    // Locally: use dotenv-cli to load .env.test
+    command: process.env.CI
+      ? "npm run dev -- --config astro.config.test.mjs"
+      : `npx dotenv-cli -e ${process.env.E2E_ENV_FILE || ".env.test"} -- npm run dev -- --config astro.config.test.mjs`,
     url: "http://localhost:3000",
-    // Reuse server for development (faster), but not in CI or when using .env.test
-    // This ensures test:e2e (which uses .env.test) doesn't reuse a server started with .env
-    reuseExistingServer: !process.env.CI && envFile === ".env",
+    // Reuse server for development (faster), but not in CI
+    reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
 });

@@ -52,17 +52,14 @@ jobs:
       - name: Setup Node.js and dependencies
         uses: ./.github/actions/setup
 
-      - name: Create .env.test file
-        run: |
-          cat > .env.test << EOF
-          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
-          E2E_USERNAME=${{ secrets.E2E_USERNAME }}
-          E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}
-          E2E_USERNAME_ID=${{ secrets.E2E_USERNAME_ID }}
-          EOF
-
       - name: Run E2E tests
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          E2E_USERNAME_ID: ${{ secrets.E2E_USERNAME_ID }}
         run: npm run test:e2e
 
       - name: Upload E2E test results
