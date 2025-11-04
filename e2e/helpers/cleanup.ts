@@ -60,9 +60,18 @@ async function getAuthenticatedSupabaseClient() {
 export async function cleanupTestData() {
   const supabase = await getAuthenticatedSupabaseClient();
   const testUserId = process.env.E2E_USERNAME_ID?.trim();
+  const testEmail = process.env.E2E_USERNAME?.trim();
 
   if (!testUserId) {
     throw new Error("E2E_USERNAME_ID must be set in environment");
+  }
+
+  // Safety check: ensure we're only cleaning up test user data
+  if (!testEmail || !testEmail.includes("test")) {
+    throw new Error(
+      `Safety check failed: E2E_USERNAME (${testEmail}) does not appear to be a test account. ` +
+        `Cleanup aborted to prevent accidental deletion of production data.`
+    );
   }
 
   console.log("🧹 Cleaning up test data for user:", testUserId);
