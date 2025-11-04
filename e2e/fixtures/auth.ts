@@ -14,9 +14,9 @@
 
 export const TEST_USERS = {
   valid: {
-    email: process.env.E2E_USERNAME || "test@example.com",
-    password: process.env.E2E_PASSWORD || "test1234",
-    userId: process.env.E2E_USERNAME_ID, // Optional: for direct DB operations
+    email: process.env.E2E_USERNAME?.trim() || "test@example.com",
+    password: process.env.E2E_PASSWORD?.trim() || "test1234",
+    userId: process.env.E2E_USERNAME_ID?.trim(), // Optional: for direct DB operations
   },
   newUser: {
     email: `test-${Date.now()}@example.com`,
