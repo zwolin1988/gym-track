@@ -71,7 +71,7 @@ const astroConfig = tseslint.config({
 });
 
 const nodeConfig = tseslint.config({
-  files: ["*.config.{js,mjs,ts}"],
+  files: ["*.config.{js,mjs,ts}", "*.config.*.{js,mjs,ts}"],
   languageOptions: {
     globals: {
       process: "readonly",
