@@ -13,19 +13,25 @@ import type { Database } from "../db/database.types";
  * - Redirect logged-in users away from auth pages
  */
 export const onRequest = defineMiddleware(async (context, next) => {
-  // 1. Get env vars - supports multiple environments:
-  //    - Cloudflare Pages: runtime.env (production)
-  //    - Dev & E2E tests: import.meta.env (loaded via vite.define in astro.config)
-  interface CloudflareRuntime {
-    env?: {
-      SUPABASE_URL?: string;
-      SUPABASE_KEY?: string;
-    };
-  }
+  // 1. Get env vars - different sources for different environments:
+  //    - Cloudflare Pages (production): context.locals.runtime.env (from dashboard settings)
+  //    - Dev & E2E tests: import.meta.env (from .env files)
 
-  const runtime = (context.locals as { runtime?: CloudflareRuntime }).runtime;
+  // Try to get from Cloudflare runtime first (if available)
+  const runtime = (context.locals as any).runtime;
   const SUPABASE_URL = runtime?.env?.SUPABASE_URL || import.meta.env.SUPABASE_URL;
   const SUPABASE_KEY = runtime?.env?.SUPABASE_KEY || import.meta.env.SUPABASE_KEY;
+
+  // Debug logging
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error("[Middleware] Missing Supabase credentials!", {
+      hasRuntime: !!runtime,
+      hasRuntimeEnv: !!runtime?.env,
+      runtimeKeys: runtime?.env ? Object.keys(runtime.env) : [],
+      hasImportMetaUrl: !!import.meta.env.SUPABASE_URL,
+      hasImportMetaKey: !!import.meta.env.SUPABASE_KEY,
+    });
+  }
 
   // 2. Create a Supabase client with cookie handling for SSR
   const supabase = createServerClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
