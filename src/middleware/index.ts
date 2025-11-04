@@ -13,7 +13,10 @@ import type { Database } from "../db/database.types";
  * - Redirect logged-in users away from auth pages
  */
 export const onRequest = defineMiddleware(async (context, next) => {
-  // 1. Get env vars - works in both dev (import.meta.env) and Cloudflare Pages (runtime.env)
+  // 1. Get env vars - supports multiple environments:
+  //    - Cloudflare Pages: runtime.env (production)
+  //    - Astro dev: import.meta.env (loaded from .env file)
+  //    - Node adapter: process.env (e.g., from dotenv-cli in E2E tests)
   interface CloudflareRuntime {
     env?: {
       SUPABASE_URL?: string;
@@ -22,8 +25,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const runtime = (context.locals as { runtime?: CloudflareRuntime }).runtime;
-  const SUPABASE_URL = runtime?.env?.SUPABASE_URL || import.meta.env.SUPABASE_URL;
-  const SUPABASE_KEY = runtime?.env?.SUPABASE_KEY || import.meta.env.SUPABASE_KEY;
+  const SUPABASE_URL = runtime?.env?.SUPABASE_URL || import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL;
+  const SUPABASE_KEY = runtime?.env?.SUPABASE_KEY || import.meta.env.SUPABASE_KEY || process.env.SUPABASE_KEY;
 
   // 2. Create a Supabase client with cookie handling for SSR
   const supabase = createServerClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
