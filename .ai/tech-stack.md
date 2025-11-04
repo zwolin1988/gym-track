@@ -88,4 +88,4 @@
 
 ## CI/CD i Hosting
 - GitHub Actions: Automatyzuje proces budowy pipeline'ów CI/CD, co przyspiesza wdrażanie zmian.
-- DigitalOcean: Hostowanie aplikacji za pośrednictwem obrazów Docker, gwarantujące skalowalność oraz wydajność.
+- Cloudflare Pages jako hosting aplikacji Astro
