@@ -14,7 +14,14 @@ import type { Database } from "../db/database.types";
  */
 export const onRequest = defineMiddleware(async (context, next) => {
   // 1. Get env vars - works in both dev (import.meta.env) and Cloudflare Pages (runtime.env)
-  const runtime = (context.locals as any).runtime;
+  interface CloudflareRuntime {
+    env?: {
+      SUPABASE_URL?: string;
+      SUPABASE_KEY?: string;
+    };
+  }
+
+  const runtime = (context.locals as { runtime?: CloudflareRuntime }).runtime;
   const SUPABASE_URL = runtime?.env?.SUPABASE_URL || import.meta.env.SUPABASE_URL;
   const SUPABASE_KEY = runtime?.env?.SUPABASE_KEY || import.meta.env.SUPABASE_KEY;
 
