@@ -15,6 +15,6 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   adapter: cloudflare({
-    imageService: 'passthrough',
+    imageService: "passthrough",
   }),
 });
