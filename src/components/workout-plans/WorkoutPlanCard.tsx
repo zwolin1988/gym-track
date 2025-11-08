@@ -20,22 +20,28 @@ export default function WorkoutPlanCard({ plan }: WorkoutPlanCardProps) {
       data-testid={`workout-plan-card-${plan.id}`}
       className="group overflow-hidden rounded-lg border bg-card shadow-sm transition-all hover:border-primary hover:shadow-md"
     >
-      <div className="p-6">
-        <div className="mb-4 flex items-start justify-between">
-          <div>
-            <h3 className="mb-1 text-lg font-semibold group-hover:text-primary">{plan.name}</h3>
-            <p className="text-sm text-muted-foreground">
-              {plan.exercise_count} {plan.exercise_count === 1 ? "ćwiczenie" : "ćwiczeń"} • {plan.total_sets}{" "}
-              {plan.total_sets === 1 ? "seria" : "serii"}
-            </p>
+      <div className="p-4 sm:p-6">
+        <div className="mb-3 sm:mb-4">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <h3 className="mb-1 truncate text-base font-semibold group-hover:text-primary sm:text-lg">{plan.name}</h3>
+              <p className="text-xs text-muted-foreground sm:text-sm">
+                {plan.exercise_count} {plan.exercise_count === 1 ? "ćwiczenie" : "ćwiczeń"} • {plan.total_sets}{" "}
+                {plan.total_sets === 1 ? "seria" : "serii"}
+              </p>
+            </div>
           </div>
         </div>
 
-        {plan.description && <p className="mb-4 text-sm text-muted-foreground line-clamp-2">{plan.description}</p>}
+        {plan.description && (
+          <p className="mb-3 line-clamp-2 text-xs text-muted-foreground sm:mb-4 sm:text-sm">{plan.description}</p>
+        )}
 
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>Utworzono: {formatDate(plan.created_at)}</span>
-          {plan.last_used_at && <span className="text-primary">Ostatni trening: {formatDate(plan.last_used_at)}</span>}
+        <div className="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+          <span className="truncate">Utworzono: {formatDate(plan.created_at)}</span>
+          {plan.last_used_at && (
+            <span className="truncate text-primary">Ostatni trening: {formatDate(plan.last_used_at)}</span>
+          )}
         </div>
       </div>
     </a>

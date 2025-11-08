@@ -10,7 +10,7 @@ interface SetsListProps {
 
 export function SetsList({ sets, onUpdateSet, onDeleteSet, isLoading }: SetsListProps) {
   return (
-    <div className="mt-4 space-y-3">
+    <div className="mt-3 space-y-2 sm:mt-4 sm:space-y-3">
       {sets.map((set, index) => (
         <SetItem
           key={set.id}

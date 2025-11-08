@@ -48,9 +48,9 @@ export function ActiveWorkoutContainer({ initialWorkout }: ActiveWorkoutContaine
     <div className="min-h-screen">
       <WorkoutHeader planName={workout.plan_name} startedAt={workout.started_at} />
 
-      <main className="container mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <main className="container mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
         {/* Zakończ trening button */}
-        <div className="mb-6 flex justify-end">
+        <div className="mb-4 flex justify-end sm:mb-6">
           <Button
             onClick={() => setCompleteDialogOpen(true)}
             size="default"

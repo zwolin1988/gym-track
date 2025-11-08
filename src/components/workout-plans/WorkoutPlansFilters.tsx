@@ -8,7 +8,7 @@ interface WorkoutPlansFiltersProps {
 export function WorkoutPlansFilters({ initialSearch = "" }: WorkoutPlansFiltersProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [search, setSearch] = useState(initialSearch);
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const searchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Auto-submit form when filters change
   const submitForm = useCallback(() => {
@@ -59,15 +59,20 @@ export function WorkoutPlansFilters({ initialSearch = "" }: WorkoutPlansFiltersP
   }, []);
 
   return (
-    <form ref={formRef} method="get" action="/workout-plans" className="mb-6 rounded-lg border bg-card p-6 shadow-sm">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <form
+      ref={formRef}
+      method="get"
+      action="/workout-plans"
+      className="mb-4 rounded-lg border bg-card p-4 shadow-sm sm:mb-6 sm:p-6"
+    >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* Search Input */}
-        <div>
+        <div className="sm:col-span-1">
           <label htmlFor="search" className="mb-2 block text-sm font-medium">
             Wyszukaj
           </label>
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground sm:h-5 sm:w-5" />
             <input
               type="text"
               id="search"
@@ -76,7 +81,7 @@ export function WorkoutPlansFilters({ initialSearch = "" }: WorkoutPlansFiltersP
               onChange={handleSearchChange}
               onKeyPress={handleSearchKeyPress}
               placeholder="Wyszukaj plan treningowy..."
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-9 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:pl-10"
             />
           </div>
         </div>

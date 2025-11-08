@@ -59,55 +59,51 @@ export function SetItem({ set, setNumber, onUpdate, onDelete, isLoading }: SetIt
   return (
     <>
       <div
-        className={`rounded-lg border p-3 shadow-sm transition-all duration-200 sm:p-4 ${
+        className={`rounded-lg border p-3 shadow-sm transition-all duration-200 ${
           completed ? "border-primary/30 bg-primary/5 ring-1 ring-primary/20" : "border-border bg-card hover:shadow-md"
         }`}
       >
-        <div className="flex items-start gap-3">
-          {/* Checkbox - 44x44px touch target */}
-          <SetCheckbox checked={completed} onChange={handleToggleCompleted} disabled={isLoading} />
-
-          <div className="flex-1 space-y-3">
-            {/* Numer serii + Delete button */}
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold">Seria {setNumber}</div>
-              <div className="flex items-center gap-2">
-                {isLoading && (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                )}
-                <button
-                  type="button"
-                  onClick={() => setDeleteDialogOpen(true)}
-                  disabled={isLoading}
-                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
-                  aria-label="Usuń serię"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Inputs dla reps i weight */}
-            <div className="grid grid-cols-2 gap-3">
-              <SetInput
-                label="Powtórzenia"
-                value={reps}
-                onChange={setReps}
-                min={1}
-                disabled={isLoading}
-                planned={set.planned_reps}
-              />
-              <SetInput
-                label="Ciężar (kg)"
-                value={weight}
-                onChange={setWeight}
-                min={0}
-                step={2.5}
-                disabled={isLoading}
-                planned={set.planned_weight}
-              />
-            </div>
+        {/* Header: Checkbox + Numer serii + Delete button w jednym rzędzie */}
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <SetCheckbox checked={completed} onChange={handleToggleCompleted} disabled={isLoading} />
+            <div className="text-sm font-semibold">Seria {setNumber}</div>
           </div>
+          <div className="flex items-center gap-2">
+            {isLoading && (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            )}
+            <button
+              type="button"
+              onClick={() => setDeleteDialogOpen(true)}
+              disabled={isLoading}
+              className="rounded p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+              aria-label="Usuń serię"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Inputs dla reps i weight - 100% szerokości na mobile */}
+        <div className="space-y-3">
+          <SetInput
+            label="Powtórzenia"
+            value={reps}
+            onChange={setReps}
+            min={1}
+            disabled={isLoading}
+            planned={set.planned_reps}
+          />
+          <SetInput
+            label="Ciężar (kg)"
+            value={weight}
+            onChange={setWeight}
+            min={0}
+            step={2.5}
+            disabled={isLoading}
+            planned={set.planned_weight}
+          />
         </div>
       </div>
 

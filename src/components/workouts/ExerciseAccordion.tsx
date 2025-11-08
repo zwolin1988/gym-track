@@ -31,7 +31,7 @@ export function ExerciseAccordion({
     <div className="group overflow-hidden rounded-lg border bg-card shadow-md transition-all duration-200 hover:shadow-lg">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-between px-4 py-4 transition-colors hover:bg-accent/50"
+        className="flex w-full items-center justify-between px-3 py-3 transition-colors hover:bg-accent/50 sm:px-4 sm:py-4"
       >
         <ExerciseHeader
           name={exercise.exercise.name}
@@ -45,7 +45,7 @@ export function ExerciseAccordion({
       </button>
 
       {expanded && (
-        <div className="border-t px-4 pb-4">
+        <div className="border-t px-3 pb-3 sm:px-4 sm:pb-4">
           <SetsList sets={exercise.sets} onUpdateSet={onUpdateSet} onDeleteSet={onDeleteSet} isLoading={isLoading} />
           <AddSetButton
             exerciseId={exercise.id}

@@ -34,33 +34,35 @@ const hasActiveWorkout = await checkActiveWorkout(Astro.locals.supabase);
 ---
 
 <Layout title="Workout Plans - Gym Track">
-  <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+  <div class="container mx-auto px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
     <!-- Header with Action Buttons -->
-    <div class="mb-8">
-      <div class="flex items-center justify-between">
+    <div class="mb-6 sm:mb-8">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Plany treningowe</h1>
-          <p class="mt-2 text-muted-foreground">Zarządzaj swoimi planami treningowymi</p>
+          <h1 class="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">Plany treningowe</h1>
+          <p class="mt-1 text-sm text-muted-foreground sm:mt-2 sm:text-base">Zarządzaj swoimi planami treningowymi</p>
         </div>
-        <div class="flex gap-3">
+        <div class="flex flex-col gap-3 sm:flex-row">
           {
             hasActiveWorkout && (
               <a
                 href="/workouts/active"
-                class="inline-flex items-center gap-2 rounded-lg border border-green-600 bg-green-50 px-6 py-3 font-medium text-green-700 hover:bg-green-100"
+                class="inline-flex items-center justify-center gap-2 rounded-lg border border-green-600 bg-green-50 px-4 py-2.5 text-sm font-medium text-green-700 hover:bg-green-100 sm:px-6 sm:py-3"
               >
                 <span class="material-symbols-outlined text-base">play_circle</span>
-                Kontynuuj trening
+                <span class="hidden min-[480px]:inline">Kontynuuj trening</span>
+                <span class="min-[480px]:hidden">Kontynuuj</span>
               </a>
             )
           }
           <a
             href="/workout-plans/new"
             data-testid="new-workout-plan-button"
-            class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90"
+            class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 sm:px-6 sm:py-3"
           >
             <span class="material-symbols-outlined text-base">add</span>
-            Nowy plan
+            <span class="hidden min-[480px]:inline">Nowy plan</span>
+            <span class="min-[480px]:hidden">Nowy</span>
           </a>
         </div>
       </div>
@@ -90,39 +92,41 @@ const hasActiveWorkout = await checkActiveWorkout(Astro.locals.supabase);
         </div>
       ) : (
         <>
-          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {plans.map((plan) => <WorkoutPlanCard plan={plan} client:load />)}
           </div>
 
           <!-- Pagination -->
           {
             totalPages > 1 && (
-              <div class="mt-8 flex items-center justify-center gap-2">
-                <button
-                  onclick={`
-                    const params = new URLSearchParams(window.location.search);
-                    params.set('page', '${page - 1}');
-                    window.location.href = '/workout-plans?' + params.toString();
-                  `}
-                  disabled={page === 1}
-                  class="rounded-lg border bg-background px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Poprzednia
-                </button>
-                <span class="text-sm text-muted-foreground">
-                  Strona {page} z {totalPages}
-                </span>
-                <button
-                  onclick={`
-                    const params = new URLSearchParams(window.location.search);
-                    params.set('page', '${page + 1}');
-                    window.location.href = '/workout-plans?' + params.toString();
-                  `}
-                  disabled={page === totalPages}
-                  class="rounded-lg border bg-background px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Następna
-                </button>
+              <div class="mt-6 sm:mt-8">
+                <div class="flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-2">
+                  <button
+                    onclick={`
+                      const params = new URLSearchParams(window.location.search);
+                      params.set('page', '${page - 1}');
+                      window.location.href = '/workout-plans?' + params.toString();
+                    `}
+                    disabled={page === 1}
+                    class="w-full rounded-lg border bg-background px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                  >
+                    Poprzednia
+                  </button>
+                  <span class="text-sm text-muted-foreground">
+                    Strona {page} z {totalPages}
+                  </span>
+                  <button
+                    onclick={`
+                      const params = new URLSearchParams(window.location.search);
+                      params.set('page', '${page + 1}');
+                      window.location.href = '/workout-plans?' + params.toString();
+                    `}
+                    disabled={page === totalPages}
+                    class="w-full rounded-lg border bg-background px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                  >
+                    Następna
+                  </button>
+                </div>
               </div>
             )
           }

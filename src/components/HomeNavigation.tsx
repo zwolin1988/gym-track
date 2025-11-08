@@ -118,11 +118,11 @@ export default function HomeNavigation({ user }: HomeNavigationProps) {
             </>
           ) : (
             <>
-              {/* Login/Register buttons for non-authenticated users */}
-              <Button variant="outline" size="sm" asChild>
+              {/* Login/Register buttons for non-authenticated users - Desktop only */}
+              <Button variant="outline" size="sm" asChild className="hidden md:inline-flex">
                 <a href="/auth/login">Logowanie</a>
               </Button>
-              <Button variant="default" size="sm" asChild>
+              <Button variant="default" size="sm" asChild className="hidden md:inline-flex">
                 <a href="/auth/register">Rejestracja</a>
               </Button>
             </>
@@ -155,9 +155,9 @@ export default function HomeNavigation({ user }: HomeNavigationProps) {
                 {item.label}
               </a>
             ))}
-            {user && (
+            <div className="my-2 h-px bg-border" />
+            {user ? (
               <>
-                <div className="my-2 h-px bg-border" />
                 <a
                   href="/dashboard"
                   className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer"
@@ -173,6 +173,21 @@ export default function HomeNavigation({ user }: HomeNavigationProps) {
                   <span className="material-symbols-outlined mr-2 text-base">logout</span>
                   Wyloguj
                 </LogoutButton>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" asChild className="w-full">
+                  <a href="/auth/login" className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-base">login</span>
+                    Logowanie
+                  </a>
+                </Button>
+                <Button variant="default" size="sm" asChild className="w-full">
+                  <a href="/auth/register" className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-base">person_add</span>
+                    Rejestracja
+                  </a>
+                </Button>
               </>
             )}
           </nav>
