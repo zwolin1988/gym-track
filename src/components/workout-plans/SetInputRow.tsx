@@ -83,10 +83,21 @@ export function SetInputRow({
   };
 
   return (
-    <div className="flex items-start gap-3">
+    <div className="flex flex-col gap-3 md:flex-row md:items-start">
       {/* Numer serii */}
-      <div className="flex items-center justify-center pt-2 w-8">
-        <span className="font-semibold text-muted-foreground">{setNumber}</span>
+      <div className="flex items-center gap-2 md:justify-center md:pt-2 md:w-8">
+        <span className="font-semibold text-muted-foreground md:block">Seria {setNumber}</span>
+        {/* Przycisk usuwania - mobile */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
+          disabled={!canRemove}
+          className="ml-auto text-destructive hover:text-destructive hover:bg-destructive/10 disabled:opacity-30 md:hidden"
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
       </div>
 
       {/* Powtórzenia */}
@@ -169,8 +180,8 @@ export function SetInputRow({
         {weightError && <p className="text-xs text-destructive mt-1">{weightError}</p>}
       </div>
 
-      {/* Przycisk usuwania */}
-      <div className="flex items-center justify-end pt-6">
+      {/* Przycisk usuwania - desktop */}
+      <div className="hidden md:flex items-center justify-end pt-6">
         <Button
           type="button"
           variant="ghost"

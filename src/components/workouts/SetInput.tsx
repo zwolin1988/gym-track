@@ -53,7 +53,7 @@ export function SetInput({
           type="button"
           onClick={handleDecrement}
           disabled={disabled || displayValue <= min}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border bg-card hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border bg-card hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Minus className="h-3.5 w-3.5" />
         </button>
@@ -73,7 +73,7 @@ export function SetInput({
           type="button"
           onClick={handleIncrement}
           disabled={disabled}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border bg-card hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border bg-card hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus className="h-3.5 w-3.5" />
         </button>

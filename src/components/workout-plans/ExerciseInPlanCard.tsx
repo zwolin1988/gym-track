@@ -68,14 +68,28 @@ export default function ExerciseInPlanCard({
       ref={draggable ? sortable.setNodeRef : undefined}
       style={style}
       data-testid={`exercise-in-plan-${exerciseId}`}
-      className="rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md"
+      className="relative rounded-lg border bg-card p-3 md:p-4 shadow-sm transition-all hover:shadow-md"
     >
-      <div className="flex items-start gap-4">
-        {/* Drag handle (only in edit mode with draggable) */}
+      {/* Remove button (only in edit mode) - Absolute position */}
+      {editMode && onRemove && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
+          className="absolute top-2 right-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      )}
+
+      {/* Header: Image and Title */}
+      <div className="flex items-start gap-3 mb-2">
+        {/* Drag handle (only in edit mode with draggable) - Desktop only */}
         {editMode && draggable && (
           <button
             type="button"
-            className="flex-shrink-0 cursor-grab active:cursor-grabbing touch-none pt-1"
+            className="hidden md:flex flex-shrink-0 cursor-grab active:cursor-grabbing touch-none pt-1"
             {...sortable.attributes}
             {...sortable.listeners}
           >
@@ -84,7 +98,7 @@ export default function ExerciseInPlanCard({
         )}
 
         {/* Exercise Image */}
-        <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+        <div className="flex h-14 w-14 md:h-16 md:w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
           {exerciseData.image_path ? (
             <img
               src={exerciseData.image_path}
@@ -95,69 +109,54 @@ export default function ExerciseInPlanCard({
               }}
             />
           ) : (
-            <span className="material-symbols-outlined text-3xl text-muted-foreground">fitness_center</span>
+            <span className="material-symbols-outlined text-2xl md:text-3xl text-muted-foreground">fitness_center</span>
           )}
         </div>
 
-        {/* Exercise Info */}
-        <div className="flex-1">
-          <div className="mb-2 flex items-start justify-between">
-            <div>
-              <div className="mb-1 flex items-center gap-2">
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">#{index + 1}</span>
-                <h3 className="font-semibold">{exerciseData.name}</h3>
-              </div>
-              <div className="flex gap-2">
-                <Badge variant="outline" className="text-xs">
-                  {exerciseData.category.name}
-                </Badge>
-                <Badge variant="outline" className={`text-xs ${difficultyColors[exerciseData.difficulty]}`}>
-                  {difficultyLabels[exerciseData.difficulty]}
-                </Badge>
-              </div>
-            </div>
-
-            {/* Remove button (only in edit mode) */}
-            {editMode && onRemove && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onRemove}
-                className="flex-shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-
-          {/* Sets - Display or Edit mode */}
-          <div className="mt-3">
-            {editMode && onUpdateSets && isSelectedExercise(exercise) ? (
-              <ExerciseSetsEditor exerciseName={exerciseData.name} sets={exercise.sets} onUpdate={onUpdateSets} />
-            ) : (
-              <>
-                <p className="mb-2 text-sm font-medium text-muted-foreground">Serie ({sets.length}):</p>
-                <div className="space-y-1">
-                  {sets.map((set, setIndex) => (
-                    <div key={set.id} className="flex items-center gap-3 text-sm">
-                      <span className="w-12 text-muted-foreground">Seria {setIndex + 1}:</span>
-                      <span className="font-medium">
-                        {set.reps} {set.reps === 1 ? "powtórzenie" : "powtórzenia"}
-                      </span>
-                      {set.weight !== null && (
-                        <>
-                          <span className="text-muted-foreground">•</span>
-                          <span className="font-medium">{set.weight} kg</span>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+        {/* Exercise Title */}
+        <div className="min-w-0 flex-1 pr-8">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">#{index + 1}</span>
+            <h3 className="font-semibold text-sm md:text-base break-words">{exerciseData.name}</h3>
           </div>
         </div>
+      </div>
+
+      {/* Badges Row */}
+      <div className="flex gap-2 flex-wrap mb-3 ml-0 md:ml-[4.5rem]">
+        <Badge variant="outline" className="text-xs">
+          {exerciseData.category.name}
+        </Badge>
+        <Badge variant="outline" className={`text-xs ${difficultyColors[exerciseData.difficulty]}`}>
+          {difficultyLabels[exerciseData.difficulty]}
+        </Badge>
+      </div>
+
+      {/* Full-width Sets Section */}
+      <div className="w-full">
+        {editMode && onUpdateSets && isSelectedExercise(exercise) ? (
+          <ExerciseSetsEditor exerciseName={exerciseData.name} sets={exercise.sets} onUpdate={onUpdateSets} />
+        ) : (
+          <>
+            <p className="mb-2 text-sm font-medium text-muted-foreground">Serie ({sets.length}):</p>
+            <div className="space-y-1">
+              {sets.map((set, setIndex) => (
+                <div key={set.id} className="flex items-center gap-2 md:gap-3 text-sm flex-wrap">
+                  <span className="w-12 text-muted-foreground">Seria {setIndex + 1}:</span>
+                  <span className="font-medium">
+                    {set.reps} {set.reps === 1 ? "powtórzenie" : "powtórzenia"}
+                  </span>
+                  {set.weight !== null && (
+                    <>
+                      <span className="text-muted-foreground">•</span>
+                      <span className="font-medium">{set.weight} kg</span>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

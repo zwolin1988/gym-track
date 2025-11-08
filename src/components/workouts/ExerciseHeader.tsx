@@ -9,21 +9,25 @@ export function ExerciseHeader({ name, imagePath, completedSets, totalSets }: Ex
   const progressPercentage = totalSets > 0 ? (completedSets / totalSets) * 100 : 0;
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2 sm:gap-3">
       {/* Exercise Image */}
       {imagePath ? (
-        <img src={imagePath} alt={name} className="h-12 w-12 rounded-lg object-cover ring-2 ring-border" />
+        <img
+          src={imagePath}
+          alt={name}
+          className="h-10 w-10 rounded-lg object-cover ring-2 ring-border sm:h-12 sm:w-12"
+        />
       ) : (
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 ring-2 ring-border">
-          <span className="text-xl font-bold text-primary">{name.charAt(0)}</span>
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-2 ring-border sm:h-12 sm:w-12">
+          <span className="text-lg font-bold text-primary sm:text-xl">{name.charAt(0)}</span>
         </div>
       )}
 
       {/* Exercise Info */}
-      <div className="flex-1">
-        <h3 className="font-semibold group-hover:text-primary">{name}</h3>
-        <div className="mt-1.5 flex items-center gap-2">
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+      <div className="min-w-0 flex-1">
+        <h3 className="truncate text-sm font-semibold group-hover:text-primary sm:text-base">{name}</h3>
+        <div className="mt-1 flex items-center gap-2 sm:mt-1.5">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted sm:h-2">
             <div
               className="h-full bg-primary transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}

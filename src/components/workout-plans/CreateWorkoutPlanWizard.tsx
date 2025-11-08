@@ -41,71 +41,76 @@ export function CreateWorkoutPlanWizard({
   } = useWorkoutPlanWizard({ exercises, categories, editMode, existingPlanId });
 
   return (
-    <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
-      <div className="py-6 px-6 md:px-8 border-b">
+    <div className="flex flex-col bg-card rounded-lg border shadow-sm overflow-hidden">
+      {/* Stepper Header */}
+      <div className="py-4 px-4 border-b flex-shrink-0 sm:py-6 sm:px-8">
         <Stepper currentStep={currentStep} totalSteps={3} />
       </div>
-      <div className="p-6 md:p-8 max-w-7xl mx-auto">
-        {/* Renderowanie warunkowe aktualnego kroku */}
-        {currentStep === 1 && (
-          <Step1BasicInfo name={state.planName} description={state.planDescription} onChange={updateBasicInfo} />
-        )}
 
-        {currentStep === 2 && (
-          <Step2SelectExercises
-            exercises={exercises}
-            categories={categories}
-            selectedExercises={state.selectedExercises}
-            onAdd={addExercise}
-            onRemove={removeExercise}
-            onReorder={reorderExercises}
-          />
-        )}
+      {/* Scrollable Content */}
+      <div className="flex-1 p-4 sm:p-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Renderowanie warunkowe aktualnego kroku */}
+          {currentStep === 1 && (
+            <Step1BasicInfo name={state.planName} description={state.planDescription} onChange={updateBasicInfo} />
+          )}
 
-        {currentStep === 3 && (
-          <Step3DefineSets
-            selectedExercises={state.selectedExercises}
-            onUpdateSets={updateExerciseSets}
-            onReorder={reorderExercises}
-            onRemove={removeExercise}
-          />
-        )}
+          {currentStep === 2 && (
+            <Step2SelectExercises
+              exercises={exercises}
+              categories={categories}
+              selectedExercises={state.selectedExercises}
+              onAdd={addExercise}
+              onRemove={removeExercise}
+              onReorder={reorderExercises}
+            />
+          )}
 
-        {/* Komunikat błędu */}
-        {error && (
-          <Alert variant="destructive" className="mt-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+          {currentStep === 3 && (
+            <Step3DefineSets
+              selectedExercises={state.selectedExercises}
+              onUpdateSets={updateExerciseSets}
+              onReorder={reorderExercises}
+              onRemove={removeExercise}
+            />
+          )}
 
-        {/* Nawigacja */}
-        <div className="flex justify-between mt-8 pt-6 border-t">
-          <Button
-            data-testid="wizard-button-back"
-            variant="outline"
-            onClick={goPrevious}
-            disabled={!canGoPrevious || isLoading}
-          >
-            Wstecz
-          </Button>
-
-          {currentStep < 3 ? (
-            <Button data-testid="wizard-button-next" onClick={goNext} disabled={!canGoNext || isLoading}>
-              {isLoading ? "Zapisywanie..." : "Dalej"}
-            </Button>
-          ) : (
-            <Button data-testid="wizard-button-submit" onClick={submitPlan} disabled={!canGoNext || isLoading}>
-              {isLoading
-                ? editMode
-                  ? "Aktualizowanie planu..."
-                  : "Tworzenie planu..."
-                : editMode
-                  ? "Zaktualizuj plan"
-                  : "Utwórz plan"}
-            </Button>
+          {/* Komunikat błędu */}
+          {error && (
+            <Alert variant="destructive" className="mt-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
         </div>
+      </div>
+
+      {/* Sticky Footer Navigation */}
+      <div className="flex justify-between border-t bg-card p-4 flex-shrink-0 sm:p-6">
+        <Button
+          data-testid="wizard-button-back"
+          variant="outline"
+          onClick={goPrevious}
+          disabled={!canGoPrevious || isLoading}
+        >
+          Wstecz
+        </Button>
+
+        {currentStep < 3 ? (
+          <Button data-testid="wizard-button-next" onClick={goNext} disabled={!canGoNext || isLoading}>
+            {isLoading ? "Zapisywanie..." : "Dalej"}
+          </Button>
+        ) : (
+          <Button data-testid="wizard-button-submit" onClick={submitPlan} disabled={!canGoNext || isLoading}>
+            {isLoading
+              ? editMode
+                ? "Aktualizowanie planu..."
+                : "Tworzenie planu..."
+              : editMode
+                ? "Zaktualizuj plan"
+                : "Utwórz plan"}
+          </Button>
+        )}
       </div>
     </div>
   );
